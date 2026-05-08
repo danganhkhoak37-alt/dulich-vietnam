@@ -3,163 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cộng Đồng - Explore Vietnam</title>
+    <title>Cộng Đồng - Wanderly Vietnam</title>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* === BIẾN MÀU ĐỒNG NHẤT VỚI INDEX === */
         :root {
             --primary-green: #2F5C3E;
-            --bg-color: #FAF8F5;
+            --light-green: #487A57;
+            --bg-color: #FAF8F5; /* Màu nền kem nhạt của Index */
             --text-dark: #333333;
             --text-light: #666666;
             --white: #ffffff;
+            --accent-yellow: #f1c40f;
         }
 
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            margin: 0; padding: 0; box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             scroll-behavior: smooth;
         }
 
         body {
-            background-color: #f0f2f5; /* Nền của trang cộng đồng giống Facebook */
+            background-color: #f0f2f5; /* Giữ nền xám nhẹ cho cảm giác MXH nhưng các card dùng --white */
             color: var(--text-dark);
             line-height: 1.6;
         }
 
         a { text-decoration: none; color: inherit; }
         ul { list-style: none; }
-        img { max-width: 100%; display: block; }
 
-
-        /* === HEADER & NAVBAR CẬP NHẬT MÀU XANH RÊU === */
+        /* === HEADER ĐỒNG NHẤT === */
         header {
             background-color: var(--primary-green);
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            position: sticky; top: 0; z-index: 1000;
         }
 
         nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 30px;
-            max-width: 100%; /* Đẩy logo sát lề trái */
-            margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 30px; max-width: 100%; margin: 0 auto;
         }
 
-        .logo { display: flex; align-items: center; height: 100%;
-        width: 150px; }
-        .logo img {
-            height: 70px;
-            width: 100%;
-            display: block;
-            transition: transform 0.3s ease;
-            filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.2));
-        }
+        .logo { width: 150px; }
+        .logo img { height: 70px; transition: transform 0.3s ease; }
         .logo img:hover { transform: scale(1.05); }
 
         .nav-links { display: flex; gap: 25px; }
         .nav-links a {
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: color 0.3s;
-            color: var(--white); /* Chữ màu trắng */
+            font-weight: 500; font-size: 0.95rem; color: var(--white);
+            transition: 0.3s; padding-bottom: 5px;
         }
         .nav-links a:hover, .nav-links a.active {
-            color: #f1c40f; /* Đổi hiệu ứng hover thành màu vàng */
-            border-bottom: 2px solid #f1c40f;
+            color: var(--accent-yellow);
+            border-bottom: 2px solid var(--accent-yellow);
         }
 
-        .search-icon { cursor: pointer; color: var(--white); }
-        .menu-btn { display: none; cursor: pointer; font-size: 1.5rem; color: var(--white); }
-
+        /* === REVEAL ANIMATION === */
         .reveal {
-            opacity: 0;
-            transform: translateY(60px);
+            opacity: 0; transform: translateY(40px);
             transition: all 0.8s ease-out;
         }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .delay-1 { transition-delay: 0.2s; }
+        .delay-2 { transition-delay: 0.4s; }
 
-        .section-title {
-            font-size: 2.2rem;
-            margin-bottom: 40px;
-            color: var(--text-dark);
+        /* === TIÊU ĐỀ NGHỆ THUẬT === */
+        .community-hero {
+            padding: 60px 0 20px;
             text-align: center;
-            position: relative;
+        }
+        .community-hero h1 {
+            font-family: 'Allura', cursive;
+            font-size: 4.5rem;
+            color: var(--primary-green);
+            margin-bottom: 10px;
         }
 
-        /* === GIAO DIỆN CỘNG ĐỒNG === */
-        #community { padding: 50px 20px 80px; }
-        
-        .feed-container {
-            max-width: 680px; 
-            margin: 0 auto;
-        }
+        /* === GIAO DIỆN BÀI ĐĂNG (FEED) === */
+        #community-feed { padding: 20px 20px 80px; }
+        .feed-container { max-width: 680px; margin: 0 auto; }
 
         .create-post {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            background: var(--white); border-radius: 12px; padding: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 30px;
+            display: flex; align-items: center; gap: 15px;
         }
         .create-post img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
         .create-post input {
-            flex: 1; padding: 12px 20px; border-radius: 25px; border: none;
-            background-color: #f0f2f5; font-size: 1rem; outline: none;
+            flex: 1; padding: 12px 20px; border-radius: 25px; border: 1px solid #eee;
+            background-color: #f8f9fa; outline: none; transition: 0.3s;
         }
+        .create-post input:focus { border-color: var(--primary-green); background: var(--white); }
+
         .btn-post {
-            background: var(--primary-green); color: white; border: none; 
-            padding: 12px 20px; border-radius: 25px; cursor: pointer; font-weight: bold;
+            background: var(--primary-green); color: var(--white); border: none;
+            padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;
+            transition: 0.3s;
         }
+        .btn-post:hover { background: var(--light-green); transform: scale(1.05); }
 
         .post-card {
             background: var(--white); border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 25px; overflow: hidden;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05); margin-bottom: 30px;
+            overflow: hidden; border: 1px solid rgba(0,0,0,0.03);
         }
         .post-header { display: flex; align-items: center; gap: 12px; padding: 15px; }
-        .post-header img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
-        .post-info h4 { font-size: 1rem; color: var(--text-dark); margin-bottom: 2px; }
-        .post-info span { font-size: 0.85rem; color: var(--text-light); }
-        
-        .post-body p { padding: 0 15px 15px; font-size: 0.95rem; }
+        .post-header img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #eee; }
+        .post-info h4 { font-size: 1rem; color: var(--text-dark); }
+        .post-info span { font-size: 0.8rem; color: var(--text-light); }
+
+        .post-body p { padding: 0 15px 15px; font-size: 0.95rem; color: #444; }
         .post-body img { width: 100%; max-height: 500px; object-fit: cover; }
 
         .post-actions {
             display: flex; justify-content: space-around;
-            padding: 10px; border-top: 1px solid #eee;
+            padding: 5px; border-top: 1px solid #f0f0f0; background: #fafafa;
         }
         .post-actions button {
-            flex: 1; background: transparent; border: none;
-            padding: 10px; cursor: pointer; color: var(--text-light);
-            font-size: 0.95rem; font-weight: 600; border-radius: 8px;
-            transition: 0.2s;
+            flex: 1; background: transparent; border: none; padding: 12px;
+            cursor: pointer; color: var(--text-light); font-weight: 600;
+            transition: 0.3s; border-radius: 8px;
         }
-        .post-actions button i { margin-right: 5px; }
-        .post-actions button:hover { background-color: #f0f2f5; color: var(--primary-green); }
+        .post-actions button:hover { background: #eee; color: var(--primary-green); }
+        .post-actions i { margin-right: 8px; }
 
-        footer { background-color: var(--primary-green); color: var(--white); text-align: center; padding: 20px 0; margin-top: auto;}
+        footer { background-color: var(--primary-green); color: var(--white); text-align: center; padding: 30px 0; }
 
         @media (max-width: 768px) {
+            .community-hero h1 { font-size: 3rem; }
             .nav-links {
-                position: absolute; top: 60px; left: -100%; width: 100%; 
-                background: var(--primary-green); 
-                flex-direction: column; text-align: center; gap: 0; box-shadow: 0 5px 10px rgba(0,0,0,0.1); transition: 0.3s;
+                position: absolute; top: 60px; left: -100%; width: 100%;
+                background: var(--primary-green); flex-direction: column; transition: 0.3s;
             }
             .nav-links.active { left: 0; }
-            .nav-links a { display: block; padding: 15px; border: none !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; }
-            .menu-btn { display: block; }
-            .search-icon { display: none; }
+            .nav-links a { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1) !important; }
         }
     </style>
 </head>
@@ -169,8 +147,7 @@
         <nav>
             <div class="logo">
                 <a href="index.html">
-                    <img src="6399347b-dc1a-4f9c-aaeb-d5d91f47be6c.png" alt="Wanderly Vietnam Logo">
-                </a>
+                    <img src="logo.png" alt="Logo"> </a>
             </div>
             <ul class="nav-links">
                 <li><a href="index.html">Trang Chủ</a></li>
@@ -179,31 +156,35 @@
                 <li><a href="congdong.html" class="active">Cộng Đồng</a></li>
                 <li><a href="index.html#guides">Tin Tức</a></li>
             </ul>
-            <div class="search-icon">Tài Khoản<i class="fa-solid fa-magnifying-glass" style="margin-left: 8px;"></i></div>
-            <div class="menu-btn"><i class="fa-solid fa-bars"></i></div>
+            <div style="color: white; cursor: pointer;">Tài Khoản <i class="fa-solid fa-user"></i></div>
         </nav>
     </header>
 
-    <section id="community">
-        <h2 class="section-title reveal">Cộng Đồng Xê Dịch</h2>
-        <div class="feed-container reveal">
-            <div class="create-post">
-                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" alt="My Avatar">
+    <div class="community-hero">
+        <h1 class="reveal">Cộng Đồng Xê Dịch</h1>
+        <p class="reveal delay-1" style="color: var(--text-light);">Chia sẻ những khoảnh khắc tuyệt vời trên hành trình của bạn</p>
+    </div>
+
+    <section id="community-feed">
+        <div class="feed-container">
+            
+            <div class="create-post reveal">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150" alt="User">
                 <input type="text" placeholder="Hôm nay bạn đã đi đâu?">
                 <button class="btn-post">Đăng bài</button>
             </div>
 
             <div class="post-card reveal delay-1">
                 <div class="post-header">
-                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80" alt="Avatar">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" alt="Avatar">
                     <div class="post-info">
                         <h4>Trần Mai Anh</h4>
-                        <span><i class="fa-solid fa-earth-americas"></i> 2 giờ trước tại Sapa, Lào Cai</span>
+                        <span><i class="fa-solid fa-earth-americas"></i> 2 giờ trước • Sapa</span>
                     </div>
                 </div>
                 <div class="post-body">
                     <p>Sapa mùa này lúa chín vàng ươm đẹp mê hồn các bạn ạ! 🥰⛅</p>
-                    <img src="https://images.unsplash.com/photo-1509030450947-f584e03cc092?q=80&w=2070" alt="Checkin Sapa">
+                    <img src="https://images.unsplash.com/photo-1509030450947-f584e03cc092?w=1000" alt="Sapa">
                 </div>
                 <div class="post-actions">
                     <button><i class="fa-regular fa-thumbs-up"></i> Thích</button>
@@ -214,15 +195,15 @@
 
             <div class="post-card reveal delay-2">
                 <div class="post-header">
-                    <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=150&q=80" alt="Avatar">
+                    <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=150" alt="Avatar">
                     <div class="post-info">
                         <h4>Hoàng Nhật Long</h4>
-                        <span><i class="fa-solid fa-earth-americas"></i> 5 giờ trước tại Vịnh Hạ Long</span>
+                        <span><i class="fa-solid fa-earth-americas"></i> 5 giờ trước • Hạ Long</span>
                     </div>
                 </div>
                 <div class="post-body">
-                    <p>Ngắm hoàng hôn trên boong tàu thực sự là một cảm giác không thể nào quên! 🛥️🌊</p>
-                    <img src="https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=2070" alt="Checkin Ha Long">
+                    <p>Ngắm hoàng hôn trên boong tàu thực sự là một cảm giác khó tả! 🛥️🌊</p>
+                    <img src="https://images.unsplash.com/photo-1528127269322-539801943592?w=1000" alt="Ha Long">
                 </div>
                 <div class="post-actions">
                     <button><i class="fa-regular fa-thumbs-up"></i> Thích</button>
@@ -230,6 +211,7 @@
                     <button><i class="fa-solid fa-share"></i> Chia sẻ</button>
                 </div>
             </div>
+
         </div>
     </section>
 
@@ -238,29 +220,22 @@
     </footer>
 
     <script>
-        const menuBtn = document.querySelector('.menu-btn');
-        const navLinks = document.querySelector('.nav-links');
-
-        menuBtn.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-        });
-
+        // Hiệu ứng Reveal khi cuộn tương tự Index
         document.addEventListener('DOMContentLoaded', function() {
             const reveals = document.querySelectorAll('.reveal');
             const revealOnScroll = new IntersectionObserver(function(entries) {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('active');
-                    } else {
-                        entry.target.classList.remove('active');
                     }
                 });
-            }, { threshold: 0.15 });
+            }, { threshold: 0.1 });
 
-            reveals.forEach(reveal => {
-                revealOnScroll.observe(reveal);
-            });
+            reveals.forEach(reveal => revealOnScroll.observe(reveal));
         });
+
+        // Menu mobile
+        // (Có thể thêm code menu mobile nếu cần)
     </script>
 </body>
 </html>
