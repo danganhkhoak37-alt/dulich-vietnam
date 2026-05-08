@@ -32,6 +32,8 @@
         ul { list-style: none; }
         img { max-width: 100%; display: block; }
 
+
+        /* === HEADER & NAVBAR CẬP NHẬT MÀU XANH RÊU === */
         header {
             background-color: var(--primary-green);
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -45,28 +47,30 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 30px;
-            max-width: 100%; 
+            max-width: 100%; /* Đẩy logo sát lề trái */
             margin: 0 auto;
         }
 
-        .logo { display: flex; align-items: center; height: 100%; }
+        .logo { display: flex; align-items: center; height: 100%;
+        width: 150px; }
         .logo img {
-            height: 60px;
-            width: auto;
+            height: 70px;
+            width: 100%;
             display: block;
             transition: transform 0.3s ease;
             filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.2));
         }
+        .logo img:hover { transform: scale(1.05); }
 
         .nav-links { display: flex; gap: 25px; }
         .nav-links a {
             font-weight: 500;
             font-size: 0.95rem;
             transition: color 0.3s;
-            color: var(--white);
+            color: var(--white); /* Chữ màu trắng */
         }
         .nav-links a:hover, .nav-links a.active {
-            color: #f1c40f; 
+            color: #f1c40f; /* Đổi hiệu ứng hover thành màu vàng */
             border-bottom: 2px solid #f1c40f;
         }
 
