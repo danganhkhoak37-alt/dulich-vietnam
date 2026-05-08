@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Việt Nam Travel - Khơi Nguồn Cảm Hứng</title>
+    <title>Tin Tức Du Lịch - Việt Nam Travel</title>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -13,362 +13,185 @@
             --primary-light: #2d6a4f;
             --accent: #f1c40f;
             --transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            --white: #ffffff;
         }
 
         body {
             font-family: 'Lexend', sans-serif;
             margin: 0;
-            overflow-x: hidden;
-            background-color: #d1e7dd;
-            background: 
-                radial-gradient(at 0% 0%, rgba(45, 90, 63, 0.25) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(241, 196, 15, 0.2) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(45, 90, 63, 0.25) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, rgba(241, 196, 15, 0.2) 0px, transparent 50%),
-                linear-gradient(135deg, #f0f7f4 0%, #d1e7dd 100%);
+            background: radial-gradient(at 0% 0%, rgba(45, 90, 63, 0.25) 0px, transparent 50%),
+                        linear-gradient(135deg, #f0f7f4 0%, #d1e7dd 100%);
             background-attachment: fixed;
+            min-height: 100vh;
         }
 
-        .container {
-            max-width: 1500px;
-            margin: 0 auto;
-            padding: 80px 20px;
+        /* HEADER & NAV */
+        header { 
+            background-color: var(--primary); 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
         }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 10px 30px; }
+        .logo img { height: 70px; transition: transform 0.3s ease; }
+        .logo img:hover { transform: scale(1.05); }
+        .nav-links { display: flex; gap: 25px; list-style: none; margin: 0; padding: 0; }
+        .nav-links a { text-decoration: none; font-weight: 500; color: var(--white); transition: 0.3s; padding-bottom: 5px; }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 60px 20px; }
 
         .section-header {
-            text-align: center;
-            margin-bottom: 60px;
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(20px);
-            padding: 50px;
-            border-radius: 40px;
+            text-align: center; margin-bottom: 60px; background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px); padding: 50px; border-radius: 40px;
             border: 1px solid rgba(255, 255, 255, 0.7);
             box-shadow: 0 20px 40px rgba(0,0,0,0.05);
         }
-        /* === HEADER & NAVBAR CẬP NHẬT MÀU XANH RÊU === */
-        header {
-            background-color: var(--primary-green);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
+        .section-header h2 { font-size: 3rem; color: var(--primary); text-transform: uppercase; margin: 0; }
 
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 30px;
-            max-width: 100%; /* Đẩy logo sát lề trái */
-            margin: 0 auto;
-        }
-
-        .logo { display: flex; align-items: center; height: 100%;
-        width: 150px; }
-        .logo img {
-            height: 70px;
-            width: 100%;
-            display: block;
-            transition: transform 0.3s ease;
-            filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.2));
-        }
-        .logo img:hover { transform: scale(1.05); }
-
-        .nav-links { display: flex; gap: 25px; }
-        .nav-links a {
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: color 0.3s;
-            color: var(--white); /* Chữ màu trắng */
-        }
-        .nav-links a:hover, .nav-links a.active {
-            color: #f1c40f; /* Đổi hiệu ứng hover thành màu vàng */
-            border-bottom: 2px solid #f1c40f;
-        }
-
-        .search-icon { cursor: pointer; color: var(--white); }
-        .menu-btn { display: none; cursor: pointer; font-size: 1.5rem; color: var(--white); }
-
-        .section-header h2 {
-            font-size: 3rem;
-            color: var(--primary);
-            text-transform: uppercase;
-            font-weight: 800;
-            letter-spacing: -1px;
-        }
-
+        /* GRID HỆ THỐNG TIN TỨC */
         .news-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-            gap: 45px;
-            margin-bottom: 100px;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 40px;
         }
 
         .card {
             background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 45px;
+            border-radius: 35px;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
             transition: var(--transition);
             display: flex;
             flex-direction: column;
+            cursor: pointer;
         }
 
         .card:hover {
-            transform: scale(1.03) translateY(-15px);
-            box-shadow: 0 40px 80px rgba(27, 67, 50, 0.2);
-            background: #ffffff;
+            transform: translateY(-15px);
+            box-shadow: 0 30px 60px rgba(27, 67, 50, 0.15);
+            background: #fff;
         }
 
-        .card-img-wrapper {
-            position: relative;
-            height: 300px;
-            overflow: hidden;
+        /* Highlight cho tin đầu tiên */
+        .card.featured { grid-column: 1 / -1; flex-direction: row; }
+        @media (max-width: 992px) { .card.featured { flex-direction: column; } }
+
+        .card-img { position: relative; overflow: hidden; min-height: 250px; flex-shrink: 0; }
+        .card.featured .card-img { width: 55%; }
+        @media (max-width: 992px) { .card.featured .card-img { width: 100%; } }
+
+        .card-img img { width: 100%; height: 100%; object-fit: cover; transition: 0.8s; }
+        .card:hover .card-img img { transform: scale(1.1); }
+
+        .date-badge {
+            position: absolute; top: 20px; right: 20px;
+            background: var(--accent); color: var(--primary);
+            padding: 8px 15px; border-radius: 15px; font-weight: 800; font-size: 0.75rem;
         }
 
-        .card-img-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: 0.8s ease;
+        .card-content { padding: 35px; display: flex; flex-direction: column; flex-grow: 1; }
+        .category { color: var(--primary-light); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+        .card-title { font-size: 1.6rem; color: var(--primary); margin: 15px 0; line-height: 1.3; font-weight: 700; }
+        .description { color: #4b635a; line-height: 1.7; font-weight: 300; margin-bottom: 25px; }
+        
+        .btn-read {
+            margin-top: auto; color: var(--primary); text-decoration: none;
+            font-weight: 700; display: flex; align-items: center; gap: 10px; transition: 0.3s;
         }
-
-        .card:hover .card-img-wrapper img {
-            transform: scale(1.1);
-        }
-
-        .badge {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            background: var(--accent);
-            color: #1b4332;
-            padding: 8px 22px;
-            border-radius: 50px;
-            font-weight: 800;
-            font-size: 11px;
-            z-index: 2;
-        }
-
-        .card-content {
-            padding: 40px;
-            text-align: center;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .stars {
-            color: var(--accent);
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-
-        .card-title {
-            font-size: 2rem;
-            color: var(--primary);
-            margin: 0 0 15px 0;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-
-        .description {
-            font-size: 1.1rem;
-            color: #4b635a;
-            margin-bottom: 35px;
-            line-height: 1.7;
-            font-weight: 300;
-        }
-
-        .btn-discover {
-            display: inline-block;
-            margin-top: auto;
-            padding: 18px 50px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 100px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            transition: var(--transition);
-            box-shadow: 0 10px 20px rgba(27, 67, 50, 0.3);
-        }
-
-        .btn-discover:hover {
-            transform: scale(1.05);
-            box-shadow: 0 15px 30px rgba(27, 67, 50, 0.4);
-            letter-spacing: 2px;
-        }
+        .btn-read:hover { gap: 18px; color: var(--primary-light); }
     </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="logo">
-                <a href="index.html">
-                    <img src="logo.png" >
-                </a>
-            </div>
-            <ul class="nav-links">
-                <li><a href="#" class="active">Trang Chủ</a></li>
-                <li><a href="#">Gợi Ý</a></li>
-                <li><a href="#">Cẩm Nang</a></li>
-                <li><a href="congdong">Cộng Đồng</a></li>
-                <li><a href="tintuc">Tin Tức</a></li>
-            </ul>
-            <div class="search-icon">Tài Khoản<i class=""></i></div>
-            <div class="menu-btn"><i class=""></i></div>
-        </nav>
-    </header>
+
+<header>
+    <nav>
+        <div class="logo">
+            <a href="index.html"><img src="logo.png" alt="Logo"></a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Trang Chủ</a></li>
+            <li><a href="#">Gợi Ý</a></li>
+            <li><a href="#">Cẩm Nang</a></li>
+            <li><a href="congdong.html">Cộng Đồng</a></li>
+            <li><a href="tintuc.html" class="active">Tin Tức</a></li>
+        </ul>
+        <div style="color: white; font-weight: 600; cursor: pointer;">TÀI KHOẢN</div>
+    </nav>
+</header>
 
 <div class="container">
-    <header class="section-header">
-        <h2>Sự Kiện Văn Hóa Đang Chờ Đón</h2>
-        <p>Hòa mình vào nhịp đập rực rỡ của những lễ hội hot nhất tháng này</p>
-    </header>
-    <div class="news-grid" id="festival-container"></div>
+    <div class="section-header">
+        <h2>Bản Tin Du Lịch</h2>
+        <p>Cập nhật những chuyển động, sự kiện và xu hướng xê dịch mới nhất</p>
+    </div>
 
-    <header class="section-header">
-        <h2>Kiến Tạo Ký Ức 5 Sao</h2>
-        <p>Mỗi địa điểm là một câu chuyện, bạn đã sẵn sàng viết chương tiếp theo?</p>
-    </header>
-    <div class="news-grid" id="destination-container"></div>
+    <div class="news-grid" id="news-container">
+        </div>
 </div>
 
 <script>
-    const travelData = [
-        // --- PHẦN LỄ HỘI THÁNG 5 (ĐÃ THÊM MỚI) ---
-        { 
-            title: "Pháo Hoa DIFF", 
-            type: "festival", 
-            month: 5, 
-            rating: 5, 
-            loc: "Đà Nẵng", 
-            desc: "Hãy đứng dưới bầu trời rực sáng, nơi những màn trình diễn ánh sáng đỉnh cao sẽ khiến bạn nhận ra: Thế giới này rực rỡ hơn bạn tưởng.",
-            img: "https://diff.vn/wp-content/uploads/2025/02/Phan-Lan.jpg" 
+    const newsData = [
+        {
+            id: 1,
+            featured: true,
+            title: "Khai mạc Lễ hội Làng Sen: Hành trình về nguồn tháng 5 lịch sử",
+            category: "Sự kiện",
+            date: "08 THÁNG 5, 2026",
+            desc: "Tháng 5 về, cả nước hướng về Nghệ An với Lễ hội Làng Sen kỷ niệm ngày sinh Chủ tịch Hồ Chí Minh. Hàng loạt hoạt động văn hóa đặc sắc, liên hoan tiếng hát từ làng Sen và các tour du lịch về nguồn đang thu hút hàng vạn lượt khách...",
+            img: "https://truyenhinhnghean.vn/file/4028eaa46735a26101673a4df345003c/052025/km8_20250515223122.jpg"
         },
-        { 
-            title: "Mùa Sen Tháp Mười", 
-            type: "festival", 
-            month: 5, 
-            rating: 5, 
-            loc: "Đồng Tháp", 
-            desc: "Tạm gác lại ồn ào phố thị, hãy để hương sen dịu nhẹ dẫn lối bạn về với miền Tây thanh bình, nơi tâm hồn được chữa lành hoàn hảo.",
-            img: "https://ik.imagekit.io/tvlk/blog/2022/03/khu-du-lich-sinh-thai-dong-sen-thap-muoi-1.jpg?tr=q-70,c-at_max,w-1000,h-600" 
+        {
+            id: 2,
+            featured: false,
+            title: "Pháo hoa quốc tế Đà Nẵng DIFF 2026 chính thức mở bán vé",
+            category: "Tin nóng",
+            date: "07 THÁNG 5, 2026",
+            desc: "Sức nóng của DIFF chưa bao giờ hạ nhiệt. Năm nay với chủ đề 'Kết nối toàn cầu', các đội thi từ Pháp, Ý, Mỹ hứa hẹn sẽ tạo nên những tuyệt phẩm ánh sáng trên sông Hàn.",
+            img: "https://diff.vn/wp-content/uploads/2025/02/Phan-Lan.jpg"
         },
-        { 
-            title: "Lễ Hội Làng Sen", 
-            type: "festival", 
-            month: 5, 
-            rating: 5, 
-            loc: "Nghệ An", 
-            desc: "Hành hương về quê Bác vào tháng 5 lịch sử, để sống lại những trang sử vàng và cảm nhận lòng tự hào dân tộc trỗi dậy mãnh liệt.",
-            img: "https://truyenhinhnghean.vn/file/4028eaa46735a26101673a4df345003c/052025/km8_20250515223122.jpg" 
+        {
+            id: 3,
+            featured: false,
+            title: "Xu hướng du lịch 'Net Zero' đang lan tỏa mạnh mẽ",
+            category: "Xu hướng",
+            date: "06 THÁNG 5, 2026",
+            desc: "Du lịch không rác thải nhựa và giảm thiểu dấu chân carbon đang trở thành lựa chọn ưu tiên của Gen Z khi đến với các khu nghỉ dưỡng xanh tại Phú Quốc và Côn Đảo.",
+            img: "https://vcdn1-dulich.vnecdn.net/2024/03/15/trangan-1710471131-4567-1710471167.jpg"
         },
-        { 
-            title: "Festival Nghề Huế", 
-            type: "festival", 
-            month: 5, 
-            rating: 5, 
-            loc: "Thừa Thiên Huế", 
-            desc: "Khám phá tinh hoa di sản Việt qua đôi bàn tay khéo léo của những nghệ nhân kỳ cựu giữa không gian Cố đô trầm mặc và uy nghiêm.",
-            img: "https://images.baoangiang.com.vn/image/fckeditor/upload/2021/20210616/images/15062021-ttxvn-festivalhue-2%20(1).jpg" 
-        },
-
-        // --- PHẦN ĐỊA ĐIỂM 5 SAO (GIỮ NGUYÊN) ---
-        { 
-            title: "Vịnh Hạ Long", 
-            type: "place", 
-            rating: 5, 
-            loc: "Quảng Ninh", 
-            desc: "Đừng chỉ nhìn qua màn hình, hãy để chiếc du thuyền đưa bạn len lỏi giữa hàng ngàn đảo đá vôi kỳ vĩ để hiểu thế nào là kiệt tác thiên nhiên.",
-            img: "https://cdn-media.sforum.vn/storage/app/media/anh-vinh-ha-long-28.jpg" 
-        },
-        { 
-            title: "Phố Cổ Hội An", 
-            type: "place", 
-            rating: 5, 
-            loc: "Quảng Nam", 
-            desc: "Lạc bước giữa những bức tường vàng nhuốm màu thời gian, bạn sẽ thấy mình như đang quay ngược kim đồng hồ về một thời hoa lệ đầy mộng mị.",
-            img: "https://www.homepaylater.vn/static/d4f2c13637c198d9e593a3590e1b111b/22553/1_thanh_pho_hoi_an_duoc_unesco_cong_nhan_la_di_san_van_hoa_the_gioi_noi_tieng_voi_nhung_ngoi_nha_co_kinh_62c7183de4.jpg" 
-        },
-        { 
-            title: "Đảo Ngọc Phú Quốc", 
-            type: "place", 
-            rating: 5, 
-            loc: "Kiên Giang", 
-            desc: "Hãy để làn nước xanh ngọc bích ôm trọn lấy bạn và ngắm nhìn hoàng hôn đỏ rực tan vào biển cả. Thiên đường thực sự nằm ngay dưới chân bạn.",
-            img: "https://i.vietgiaitri.com/2020/4/17/ngo-ngang-canh-sac-yen-binh-o-dao-ngoc---phu-quoc-e73-4857537.jpg" 
-        },
-        { 
-            title: "Sapa Mờ Sương", 
-            type: "place", 
-            rating: 5, 
-            loc: "Lào Cai", 
-            desc: "Chạm tay vào nóc nhà Đông Dương và hít căng lồng ngực không khí lạnh buốt đại ngàn. Sapa sẽ khiến bạn say lòng bởi vẻ đẹp của mây trời.",
-            img: "https://wetrek.vn/pic/Service/ngdoanphuongdung@gmail.com/images/sapa-3ngay.jpg" 
-        },
-        { 
-            title: "Tràng An - Bái Đính", 
-            type: "place", 
-            rating: 5, 
-            loc: "Ninh Bình", 
-            desc: "Ngồi trên mạn thuyền nhỏ, trôi theo dòng sông xanh ngắt xuyên qua những hang động huyền bí. Một thế giới kỳ ảo đang chờ bạn giải mã.",
-            img: "https://images.unsplash.com/photo-1626743656249-5d8fa287b941?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dHJhbmclMjBhbnxlbnwwfHwwfHx8MA%3D%3Ds" 
-        },
-        { 
-            title: "Đà Lạt Ngàn Hoa", 
-            type: "place", 
-            rating: 5, 
-            loc: "Lâm Đồng", 
-            desc: "Lẩn khuất sau làn sương mờ là những ngôi biệt thự cổ và rừng thông reo vi vu. Đà Lạt luôn biết cách làm dịu đi những trái tim đang thổn thức.",
-            img: "https://loveviettravel.com/wp-content/uploads/2019/09/1-9.jpg" 
-        },
-        { 
-            title: "Gành Đá Đĩa", 
-            type: "place", 
-            rating: 5, 
-            loc: "Phú Yên", 
-            desc: "Chiêm ngưỡng sự sắp đặt kỳ diệu của mẹ thiên nhiên trên những khối đá hình lục giác độc đáo, nơi sóng biển vỗ về di sản triệu năm.",
-            img: "https://zoomtravel.vn/upload/images/ghenhdadia_jpg2.jpg" 
+        {
+            id: 4,
+            featured: false,
+            title: "Khai thác tour mạo hiểm khám phá hang động mới tại Quảng Bình",
+            category: "Khám phá",
+            date: "05 THÁNG 5, 2026",
+            desc: "Một hệ thống hang động thạch nhũ nguyên sơ vừa được đưa vào khai thác thử nghiệm, hứa hẹn là điểm đến bùng nổ cho những tín đồ yêu thích trekking.",
+            img: "https://vcdn-dulich.vnecdn.net/2022/06/15/anh-1-1655283592-2804-1655284000.jpg"
         }
     ];
 
-    function render() {
-        const festCont = document.getElementById('festival-container');
-        const destCont = document.getElementById('destination-container');
-        const month = new Date().getMonth() + 1;
-
-        const fests = travelData.filter(i => i.type === 'festival' && i.month === month);
-        const dests = travelData.filter(i => i.rating === 5 && i.type === 'place');
-
-        festCont.innerHTML = fests.map(item => createCard(item, "SỰ KIỆN HOT")).join('');
-        destCont.innerHTML = dests.map(item => createCard(item, "KHÁM PHÁ NGAY")).join('');
-    }
-
-    function createCard(item, badge) {
-        return `
-            <div class="card">
-                <div class="card-img-wrapper">
-                    <img src="${item.img}" alt="${item.title}">
-                    <span class="badge">${badge}</span>
+    function renderNews() {
+        const container = document.getElementById('news-container');
+        
+        container.innerHTML = newsData.map(news => `
+            <div class="card ${news.featured ? 'featured' : ''}">
+                <div class="card-img">
+                    <img src="${news.img}" alt="${news.title}">
+                    <span class="date-badge">${news.date}</span>
                 </div>
                 <div class="card-content">
-                    <div class="stars">${'<i class="fas fa-star"></i>'.repeat(5)}</div>
-                    <h3 class="card-title">${item.title}</h3>
-                    <div style="color:#666; margin-bottom:20px; font-weight:600;"><i class="fas fa-map-marker-alt"></i> ${item.loc}</div>
-                    <p class="description">${item.desc}</p>
-                    <a href="#" class="btn-discover">BẮT ĐẦU HÀNH TRÌNH</a>
+                    <span class="category">${news.category}</span>
+                    <h3 class="card-title">${news.title}</h3>
+                    <p class="description">${news.desc}</p>
+                    <a href="#" class="btn-read">ĐỌC CHI TIẾT <i class="fas fa-arrow-right"></i></a>
                 </div>
             </div>
-        `;
+        `).join('');
     }
 
-    window.onload = render;
+    window.onload = renderNews;
 </script>
+
 </body>
 </html>
