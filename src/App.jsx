@@ -13,6 +13,7 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-bg-cream flex flex-col font-sans">
+        
         <Navbar />
 
         <main className="flex-grow">

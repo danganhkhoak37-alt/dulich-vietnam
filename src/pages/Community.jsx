@@ -2,33 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-// Mock posts fallback
-const MOCK_POSTS = [
-  {
-    id: 1, user_name: 'Minh Phượt', avatar_url: 'https://i.pravatar.cc/150?img=11',
-    location: 'Sapa, Lào Cai',
-    content: 'Sáng sớm ở Sapa mà gặp được màn sương này thì không còn gì tuyệt hơn nữa! Đỉnh núi ẩn trong mây, ruộng bậc thang vàng rực — đúng là thiên đường trần gian. 🌿✨ #SapaMuaLua #Trekking',
-    image_url: 'https://media.vietravel.com/images/Content/dia-diem-du-lich-sapa-1.png',
-    images: [],
-    likes: 142, comments: 28, created_at: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    id: 2, user_name: 'Thu Hội An', avatar_url: 'https://i.pravatar.cc/150?img=5',
-    location: 'Hội An, Quảng Nam',
-    content: 'Đêm Rằm ở Hội An mà không thả đèn hoa đăng thì coi như chưa đến 🏮 Ánh đèn lung linh phản chiếu trên mặt sông Hoài — khoảnh khắc này sẽ theo mình cả đời. #HoiAnByNight #HoaDang',
-    image_url: 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=800',
-    images: [],
-    likes: 89, comments: 14, created_at: new Date(Date.now() - 7200000).toISOString(),
-  },
-  {
-    id: 3, user_name: 'Foodie Hà Nội', avatar_url: 'https://i.pravatar.cc/150?img=33',
-    location: 'Hà Nội',
-    content: 'Phở 24h ở Hà Nội mà ăn buổi sáng mới thật sự là trải nghiệm. Nước dùng trong vắt, thơm ngào ngạt từ ngoài đường vào. Đây mới là bữa sáng của người Hà Nội xịn xò! 🍜 #FoodTourHanoi',
-    image_url: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=800',
-    images: [],
-    likes: 63, comments: 9, created_at: new Date(Date.now() - 18000000).toISOString(),
-  },
-];
+// No mock posts anymore
 
 const TOP_USERS = [
   { name: 'Phượt Thủ 9x', ava: 'https://i.pravatar.cc/150?img=11', followers: '5.2k', badge: '🌟 Thổ Địa' },
@@ -46,7 +20,10 @@ const TRENDING_TAGS = [
 ];
 
 function timeAgo(dateStr) {
-  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+  if (!dateStr) return '';
+  const utcDateStr = dateStr.endsWith('Z') ? dateStr : dateStr.replace(' ', 'T') + 'Z';
+  const diff = Math.floor((Date.now() - new Date(utcDateStr)) / 1000);
+  if (diff < 0) return 'Vừa xong';
   if (diff < 60) return `${diff} giây trước`;
   if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
   if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
@@ -58,11 +35,54 @@ function PostCard({ post }) {
   const [saved, setSaved] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likes || 0);
   const [imgError, setImgError] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [loadingComments, setLoadingComments] = useState(false);
+  const loggedInUser = JSON.parse(localStorage.getItem('user'));
   const FALLBACK = 'https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800';
 
   const handleLike = () => {
     setLiked(!liked);
     setLikeCount((c) => liked ? c - 1 : c + 1);
+  };
+
+  const handleToggleComments = () => {
+    if (!showComments) {
+      fetchComments();
+    }
+    setShowComments(!showComments);
+  };
+
+  const fetchComments = async () => {
+    setLoadingComments(true);
+    try {
+      const res = await fetch(`http://localhost:5000/api/posts/${post.id}/comments`);
+      const data = await res.json();
+      setComments(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handlePostComment = async () => {
+    if (!loggedInUser || !newComment.trim()) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/posts/${post.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: loggedInUser.id, content: newComment })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setComments([...comments, data.data]);
+        setNewComment('');
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -118,8 +138,11 @@ function PostCard({ post }) {
         >
           <span className="text-base">{liked ? '❤️' : '🤍'}</span> {likeCount}
         </button>
-        <button className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white/40 hover:bg-white/5 hover:text-white/70 transition-all">
-          <span className="text-base">💬</span> {post.comments || 0}
+        <button 
+          onClick={handleToggleComments}
+          className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white/40 hover:bg-white/5 hover:text-white/70 transition-all"
+        >
+          <span className="text-base">💬</span> {showComments ? comments.length : (post.comments || comments.length || 0)}
         </button>
         <button className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white/40 hover:bg-white/5 hover:text-white/70 transition-all">
           <span className="text-base">📤</span>
@@ -131,6 +154,54 @@ function PostCard({ post }) {
           <span className="text-base">{saved ? '🔖' : '🏷️'}</span> {saved ? 'Đã lưu' : 'Lưu'}
         </button>
       </div>
+
+      {/* Comments Section */}
+      {showComments && (
+        <div className="px-5 py-4 border-t border-white/5 bg-black/20">
+          <div className="space-y-4 mb-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+            {loadingComments ? (
+              <p className="text-white/40 text-xs text-center">Đang tải bình luận...</p>
+            ) : comments.length === 0 ? (
+              <p className="text-white/40 text-xs text-center">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
+            ) : (
+              comments.map((comment, idx) => (
+                <div key={idx} className="flex gap-3">
+                  <img src={comment.avatar_url || 'https://i.pravatar.cc/150'} alt="ava" className="w-8 h-8 rounded-full object-cover" onError={(e) => e.target.src='https://i.pravatar.cc/150'} />
+                  <div className="flex-1 bg-[#112418] rounded-2xl rounded-tl-none p-3 border border-white/5">
+                    <h6 className="font-bold text-[#F5F2EB] text-xs mb-1">{comment.user_name}</h6>
+                    <p className="text-white/70 text-xs">{comment.content}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          {loggedInUser ? (
+            <div className="flex gap-3 items-center">
+              <img src={loggedInUser.avatar_url || 'https://i.pravatar.cc/150'} alt="ava" className="w-8 h-8 rounded-full object-cover" />
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  placeholder="Viết bình luận..."
+                  className="w-full bg-[#112418] text-white text-xs placeholder-white/30 px-4 py-2.5 rounded-full border border-white/10 outline-none focus:border-[#D4AF37]/50 transition-colors pr-12"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handlePostComment()}
+                />
+                <button
+                  onClick={handlePostComment}
+                  disabled={!newComment.trim()}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#D4AF37] disabled:opacity-30 hover:text-white transition-colors"
+                >
+                  ➤
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-white/40 text-center italic">Vui lòng đăng nhập để bình luận</p>
+          )}
+        </div>
+      )}
     </motion.article>
   );
 }
@@ -141,6 +212,9 @@ function Community() {
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostLocation, setNewPostLocation] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const fileInputRef = React.useRef(null);
   const loggedInUser = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate();
 
@@ -149,24 +223,53 @@ function Community() {
       const res = await fetch('http://localhost:5000/api/posts');
       const data = await res.json();
       if (data && data.length > 0) setPosts(data);
-      else setPosts(MOCK_POSTS);
-    } catch { setPosts(MOCK_POSTS); }
+      else setPosts([]);
+    } catch { setPosts([]); }
   };
 
   useEffect(() => { fetchPosts(); }, []);
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   const handlePost = async () => {
     if (!loggedInUser) { navigate('/suggestions'); return; }
-    if (!newPostContent.trim()) return;
+    if (!newPostContent.trim() && !selectedFile) return;
     setLoading(true);
+    let finalImageUrl = '';
+
     try {
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('post_image', selectedFile);
+        const uploadRes = await fetch('http://localhost:5000/api/upload/post', {
+          method: 'POST',
+          body: formData,
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.status === 'success') {
+          finalImageUrl = uploadData.image_url;
+        }
+      }
+
       const res = await fetch('http://localhost:5000/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: loggedInUser.id, content: newPostContent, rating: 5, image_url: '' }),
+        body: JSON.stringify({ user_id: loggedInUser.id, content: newPostContent, location: newPostLocation, image_url: finalImageUrl }),
       });
       const data = await res.json();
-      if (data.status === 'success') { setNewPostContent(''); setNewPostLocation(''); fetchPosts(); }
+      if (data.status === 'success') { 
+        setNewPostContent(''); 
+        setNewPostLocation(''); 
+        setSelectedFile(null);
+        setPreviewUrl('');
+        fetchPosts(); 
+      }
     } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
@@ -234,6 +337,18 @@ function Community() {
                   onChange={(e) => setNewPostContent(e.target.value)}
                   disabled={!loggedInUser}
                 />
+                {/* Image Preview */}
+                {previewUrl && (
+                  <div className="relative mt-3 w-32 h-32 rounded-lg overflow-hidden border border-white/10">
+                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                    <button 
+                      onClick={() => { setSelectedFile(null); setPreviewUrl(''); }}
+                      className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-black"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
                 {/* Location input */}
                 {loggedInUser && (
                   <div className="flex items-center gap-2 mt-2">
@@ -251,7 +366,17 @@ function Community() {
             </div>
             <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
               <div className="flex gap-3 text-white/40">
-                <button className="hover:text-[#D4AF37] flex items-center gap-1.5 text-xs font-bold transition-colors">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  className="hidden" 
+                />
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="hover:text-[#D4AF37] flex items-center gap-1.5 text-xs font-bold transition-colors"
+                >
                   <span className="text-base">🖼️</span> Ảnh/Video
                 </button>
                 <button className="hover:text-[#D4AF37] flex items-center gap-1.5 text-xs font-bold transition-colors">
@@ -260,7 +385,7 @@ function Community() {
               </div>
               <button
                 onClick={handlePost}
-                disabled={loading || !loggedInUser || !newPostContent.trim()}
+                disabled={loading || !loggedInUser || (!newPostContent.trim() && !selectedFile)}
                 className="bg-[#D4AF37] text-black px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest hover:bg-white disabled:opacity-30 transition-all"
               >
                 {loading ? '⏳ Đang đăng...' : '✈️ Chia Sẻ'}
@@ -312,7 +437,7 @@ function Community() {
           {/* App download CTA */}
           <div className="bg-[#0D2D1F] p-6 rounded-[1.5rem] border border-white/5 text-center">
             <div className="text-3xl mb-3">🌍</div>
-            <h4 className="text-[#F5F2EB] font-bold text-sm mb-2">ExploreVN Community</h4>
+            <h4 className="text-[#F5F2EB] font-bold text-sm mb-2">WanderlyVietNam Community</h4>
             <p className="text-white/40 text-xs leading-relaxed mb-4">Chia sẻ hành trình, kết nối với những người yêu du lịch khắp Việt Nam.</p>
             <div className="flex items-center gap-2 justify-center text-white/30 text-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>

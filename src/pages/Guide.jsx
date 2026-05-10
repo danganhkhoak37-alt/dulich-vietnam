@@ -31,7 +31,7 @@ const PINNED_ARTICLES = [
 const DESTINATIONS = [
   {
     id: 'd1', name: 'Hội An', province: 'Quảng Nam',
-    image_url: 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=800',
+    image_url: 'https://cdn3.ivivu.com/2023/10/du-lich-hoi-an-ivivu-img1.jpg',
     articles: [
       { id: 'a1', title: 'Trọn bộ kinh nghiệm vi vu Hội An mùa mưa', read_time: '6 phút', icons: ['☔', '🍜', '🛵'], filter: 'lichtrinh' },
       { id: 'a2', title: 'Ăn gì ở Hội An? 10 món không thể bỏ qua', read_time: '4 phút', icons: ['🍜', '🥗', '🧃'], filter: 'tietkiem' },
@@ -105,7 +105,7 @@ function Guide() {
       {/* ===== HEADER ===== */}
       <div className="pt-32 pb-0 px-5 max-w-[1200px] mx-auto">
         <motion.div initial="hidden" animate="visible" variants={fadeUp} className="text-center mb-8">
-          <p className="text-[#D4AF37] font-bold uppercase tracking-[0.4em] text-xs mb-3">ExploreVN · Sổ Tay Du Lịch</p>
+          <p className="text-[#D4AF37] font-bold uppercase tracking-[0.4em] text-xs mb-3">WanderlyVietNam · Sổ Tay Du Lịch</p>
           <h1 className="text-6xl md:text-7xl font-heading font-bold text-[#F5F2EB] leading-none mb-3">
             Cẩm <span className="text-[#D4AF37] italic font-light">Nang</span>
           </h1>

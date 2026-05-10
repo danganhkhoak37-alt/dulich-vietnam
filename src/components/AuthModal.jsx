@@ -174,7 +174,7 @@ function AuthModal({ isOpen, onClose, onAuthSuccess, defaultTab }) {
             <div className="flex items-center gap-2 mb-6">
               <span className="text-2xl">🌍</span>
               <span className="text-white font-heading font-black text-xl">
-                Explore<span className="text-[#D4AF37]">VN</span>
+                Wanderly<span className="text-[#D4AF37]">VietNam</span>
               </span>
             </div>
             <p className="text-[#D4AF37] text-[10px] font-black uppercase tracking-[0.4em] mb-2">Chào mừng bạn</p>
@@ -217,7 +217,7 @@ function AuthModal({ isOpen, onClose, onAuthSuccess, defaultTab }) {
               {isLogin ? 'Chào mừng trở lại!' : 'Tạo tài khoản mới'}
             </h2>
             <p className="text-gray-400 text-xs mt-1 tracking-[0.15em] uppercase font-medium">
-              ExploreVN · {isLogin ? 'Đăng nhập để tiếp tục' : 'Miễn phí · Mãi mãi'}
+              WanderlyVietNam · {isLogin ? 'Đăng nhập để tiếp tục' : 'Miễn phí · Mãi mãi'}
             </p>
           </div>
 

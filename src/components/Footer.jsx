@@ -9,7 +9,7 @@ function Footer() {
         {/* Cột 1: About */}
         <div className="space-y-6">
           <Link to="/" className="text-3xl font-heading font-black text-white flex items-center tracking-tight">
-            Explore<span className="text-gold">VN</span>
+            Wanderly<span className="text-gold">VietNam</span>
           </Link>
           <p className="text-sm leading-relaxed opacity-70">
             Khám phá vẻ đẹp tráng lệ của Việt Nam qua những góc nhìn chân thực và điện ảnh nhất. Chúng tôi mang đến trải nghiệm du lịch cao cấp.
@@ -59,18 +59,18 @@ function Footer() {
             </li>
             <li className="flex items-center gap-3">
               <Phone size={18} className="text-gold shrink-0" />
-              <span>+84 123 456 789</span>
+              <span>0979805422</span>
             </li>
             <li className="flex items-center gap-3">
               <Mail size={18} className="text-gold shrink-0" />
-              <span>contact@explorevn.com</span>
+              <span>contact@wanderlyvietnam.com</span>
             </li>
           </ul>
         </div>
       </div>
       
       <div className="max-w-[1200px] mx-auto px-6 mt-16 pt-8 border-t border-gray-800 text-center text-xs opacity-50 flex flex-col md:flex-row justify-between items-center gap-4">
-        <p>© 2026 ExploreVN. All rights reserved.</p>
+        <p>© 2026 WanderlyVietNam. All rights reserved.</p>
         <div className="space-x-6">
           <a href="#" className="hover:text-white transition-colors">Điều khoản dịch vụ</a>
           <a href="#" className="hover:text-white transition-colors">Chính sách bảo mật</a>

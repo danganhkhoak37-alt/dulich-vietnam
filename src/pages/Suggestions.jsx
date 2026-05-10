@@ -1,14 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import LocationCard from '../components/LocationCard';
 import AuthModal from '../components/AuthModal';
+
+// Haversine formula to calculate distance between two coordinates in km
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of the Earth in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return Math.round(R * c);
+}
 
 // ============================================================
 // MOCK DATA - Dùng cho UI khi Backend chưa sẵn sàng
 // ============================================================
 const MOCK_GPS_RESULTS = [
-  { id: 1, name: 'Hội An', location: 'Quảng Nam', distance: 30, travel_time: 45, tag: 'Văn Hoá', best_month_start: 2, best_month_end: 4, image_url: 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=800' },
-  { id: 2, name: 'Bà Nà Hills', location: 'Đà Nẵng', distance: 40, travel_time: 60, tag: 'Check-in', best_month_start: 3, best_month_end: 8, image_url: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=800' },
+  { id: 1, name: 'Hội An', location: 'Quảng Nam', distance: 30, travel_time: 45, tag: 'Văn Hoá', best_month_start: 2, best_month_end: 4, image_url: 'https://cdn3.ivivu.com/2023/10/du-lich-hoi-an-ivivu-img1.jpg' },
+  { id: 2, name: 'Bà Nà Hills', location: 'Đà Nẵng', distance: 40, travel_time: 60, tag: 'Check-in', best_month_start: 3, best_month_end: 8, image_url: 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=800' },
   { id: 3, name: 'Mỹ Sơn', location: 'Quảng Nam', distance: 70, travel_time: 90, tag: 'Lịch Sử', best_month_start: 2, best_month_end: 5, image_url: 'https://ik.imagekit.io/tvlk/blog/2023/09/thanh-dia-my-son-32.jpg?tr=q-70,c-at_max,w-800,h-600' },
 ];
 
@@ -39,41 +51,137 @@ const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, tra
 function Suggestions() {
   const [startLocation, setStartLocation] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [gpsResults, setGpsResults] = useState(MOCK_GPS_RESULTS);
+  const [gpsCoords, setGpsCoords] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
+  const resultsRef = useRef(null);
 
-  useEffect(() => {
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const { latitude, longitude } = pos.coords;
-      try {
-        const res = await fetch(`http://localhost:5000/api/travel-suggestions?userLat=${latitude}&userLng=${longitude}&currentMonth=${selectedMonth}`);
-        const result = await res.json();
-        if (result.data && result.data.length > 0) setGpsResults(result.data);
-      } catch (err) {
-        // Fallback to mock data if backend unavailable
-        console.log('Dùng dữ liệu mẫu do backend chưa sẵn sàng.');
-      }
-    }, () => console.log('Không thể lấy vị trí GPS.'));
-  }, [selectedMonth]);
+  const handleGetGPS = () => {
+    setLoading(true); // Hiển thị trạng thái đang tìm ngay lập tức
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setGpsCoords({ lat: latitude, lon: longitude });
+        setStartLocation('📍 Vị trí hiện tại của tôi');
+        // Tự động tìm kiếm ngay sau khi có tọa độ
+        handleManualSearch(true, { lat: latitude, lon: longitude });
+      },
+      (err) => {
+        console.error("Lỗi GPS:", err);
+        setLoading(false);
+        const wantsToEnable = window.confirm(
+          'Không thể lấy vị trí GPS (Lỗi: ' + err.message + ').\n\n' +
+          'Hãy chắc chắn rằng bạn đã cho phép trang web này truy cập vị trí trên trình duyệt (Biểu tượng ổ khóa ở thanh địa chỉ).\n\n' +
+          'Bạn có muốn xem hướng dẫn chi tiết cách bật Định vị không?'
+        );
+        if (wantsToEnable) {
+          // Mở trang hướng dẫn bật GPS của Google bằng tiếng Việt
+          window.open('https://support.google.com/chrome/answer/142065?hl=vi', '_blank');
+        }
+      },
+      { timeout: 15000, maximumAge: 60000 } // Tăng timeout lên 15s, bỏ enableHighAccuracy để tránh lỗi trên PC
+    );
+  };
 
-  const handleManualSearch = async () => {
-    if (!user) { setIsAuthOpen(true); return; }
-    if (!startLocation) return;
+  const handleManualSearch = async (isAutoOrEvent = false, overrideCoords = null) => {
+    // Nếu isAutoOrEvent là một object (React Event), ta coi isAuto = false
+    const isAuto = typeof isAutoOrEvent === 'boolean' ? isAutoOrEvent : false;
+    
+    if (!isAuto && !startLocation) return;
     setLoading(true);
     try {
-      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(startLocation)}`);
-      const geoData = await geoRes.json();
-      if (geoData.length > 0) {
-        const { lat, lon } = geoData[0];
-        const res = await fetch(`http://localhost:5000/api/travel-suggestions?userLat=${lat}&userLng=${lon}&currentMonth=${selectedMonth}`);
-        const result = await res.json();
-        setSearchResults(result.data || []);
+      let fetchLat, fetchLon;
+      
+      if (overrideCoords) {
+        fetchLat = overrideCoords.lat;
+        fetchLon = overrideCoords.lon;
+      } else if (startLocation === '📍 Vị trí hiện tại của tôi' && gpsCoords) {
+        fetchLat = gpsCoords.lat;
+        fetchLon = gpsCoords.lon;
       } else {
-        alert('Không tìm thấy vị trí này!');
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(startLocation)}`);
+        const geoData = await geoRes.json();
+        if (geoData.length > 0) {
+          fetchLat = geoData[0].lat;
+          fetchLon = geoData[0].lon;
+        } else {
+          alert('Không tìm thấy vị trí này!');
+          setLoading(false);
+          return;
+        }
       }
+
+      // 1. Fetch từ Backend (15 địa điểm nổi bật)
+      const res = await fetch(`http://localhost:5000/api/travel-suggestions?userLat=${fetchLat}&userLng=${fetchLon}&currentMonth=${selectedMonth}`);
+      const result = await res.json();
+      let combinedResults = result.data || [];
+
+      // 2. Fetch từ Wikipedia (các địa điểm xung quanh bán kính 50km)
+      try {
+        const wikiRes = await fetch(`https://vi.wikipedia.org/w/api.php?action=query&prop=coordinates|pageimages|description&generator=geosearch&ggscoord=${fetchLat}|${fetchLon}&ggsradius=10000&ggslimit=15&format=json&piprop=thumbnail&pithumbsize=800&origin=*`);
+        const wikiData = await wikiRes.json();
+        
+        if (wikiData.query && wikiData.query.pages) {
+          const wikiPages = Object.values(wikiData.query.pages);
+          const wikiMapped = wikiPages.map(page => {
+            const lat = page.coordinates?.[0]?.lat;
+            const lon = page.coordinates?.[0]?.lon;
+            const dist = (lat && lon) ? calculateDistance(fetchLat, fetchLon, lat, lon) : null;
+            
+            return {
+              id: `wiki_${page.pageid}`,
+              name: page.title,
+              location: page.description || 'Điểm khám phá lân cận',
+              lat: lat,
+              lon: lon,
+              distance: dist,
+              travel_time: dist ? Math.round((dist / 60) * 60) : null,
+              tag: 'Khám Phá',
+              best_month_start: 1,
+              best_month_end: 12, // Wiki không có mùa đẹp, mặc định quanh năm
+              image_url: page.thumbnail?.source || 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=800&auto=format&fit=crop'
+            };
+          });
+
+          // Lọc các kết quả trùng lặp và CHỈ giữ lại các địa điểm thực sự liên quan đến du lịch
+          const existingNames = new Set(combinedResults.map(item => item.name.toLowerCase()));
+          
+          // Danh sách các từ khóa đặc trưng cho địa điểm du lịch, danh lam thắng cảnh
+          const includeRegex = /\b(biển|bãi biển|quảng trường|danh lam|thắng cảnh|suối|hang|động|vườn|bảo tàng|đền|chùa|di tích|lăng|tháp|cung|nhà thờ|thác|hồ|vịnh|đảo|du lịch|công viên|chợ|làng|phố cổ|thiền viện|tu viện|thánh địa|đỉnh|núi|rừng|cầu|đèo|di sản|thành cổ|hoàng thành|địa đạo|khu sinh thái|resort|kỳ quan)\b/i;
+          // Loại bỏ các từ khóa hành chính/dân sự nếu vô tình lọt vào
+          const excludeRegex = /\b(ủy ban|ubnd|trường|đại học|học viện|bệnh viện|trung tâm y tế|công ty|nhà máy|khu công nghiệp|cơ quan|ngân hàng|chung cư|sân bay|bến xe)\b/i;
+          
+          const newWikiItems = wikiMapped.filter(item => {
+            if (item.distance === null) return false;
+            const title = item.name.toLowerCase();
+            const desc = item.location.toLowerCase();
+            const textToTest = title + ' ' + desc;
+            
+            // Bắt buộc phải có từ khóa du lịch VÀ không chứa từ khóa cấm
+            const isTourism = includeRegex.test(textToTest);
+            const isExcluded = excludeRegex.test(textToTest);
+            
+            return !existingNames.has(title) && isTourism && !isExcluded;
+          });
+          
+          combinedResults = [...combinedResults, ...newWikiItems];
+        }
+      } catch (wikiErr) {
+        console.error('Lỗi khi tải dữ liệu Wikipedia:', wikiErr);
+      }
+
+      // Sắp xếp lại toàn bộ theo khoảng cách
+      combinedResults.sort((a, b) => a.distance - b.distance);
+
+      setSearchResults(combinedResults);
+
+      // Tự động cuộn xuống kết quả
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+
     } catch (err) {
       console.error('Lỗi tìm kiếm:', err);
     } finally {
@@ -100,7 +208,7 @@ function Suggestions() {
           <motion.p initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
             className="text-[#D4AF37] font-bold uppercase tracking-[0.35em] text-xs"
           >
-            ExploreVN · Gợi Ý Du Lịch
+            WanderlyVietNam · Gợi Ý Du Lịch
           </motion.p>
 
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1 }}
@@ -116,12 +224,19 @@ function Suggestions() {
             <div className="flex-[3] relative flex items-center w-full">
               <span className="absolute left-5 text-xl text-[#D4AF37]">📍</span>
               <input
-                className="w-full py-5 px-14 bg-transparent outline-none font-semibold text-white placeholder-white/40 text-base border-b md:border-b-0 md:border-r border-white/10"
+                className="w-full py-5 pl-14 pr-12 bg-transparent outline-none font-semibold text-white placeholder-white/40 text-base border-b md:border-b-0 md:border-r border-white/10"
                 placeholder="Xuất phát từ đâu?"
                 value={startLocation}
-                onChange={(e) => setStartLocation(e.target.value)}
+                onChange={(e) => { setStartLocation(e.target.value); if(e.target.value !== '📍 Vị trí hiện tại của tôi') setGpsCoords(null); }}
                 onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
               />
+              <button 
+                onClick={handleGetGPS}
+                title="Lấy vị trí của tôi"
+                className="absolute right-4 text-white/50 hover:text-[#D4AF37] transition-colors"
+              >
+                🧭
+              </button>
             </div>
             <div className="flex-1 relative flex items-center justify-center w-full">
               <span className="absolute left-5 text-xl">🗓️</span>
@@ -140,6 +255,10 @@ function Suggestions() {
               {loading ? '⏳ Đang tìm...' : '🔍 Tìm Kiếm'}
             </button>
           </motion.div>
+          
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.5 }} className="text-white/60 text-sm italic font-light pt-2">
+            💡 Mẹo: Nhấn vào <span className="text-[#D4AF37] font-bold">la bàn (🧭)</span> để tự động định vị và tìm nhanh các điểm đến quanh bạn!
+          </motion.p>
         </div>
       </section>
 
@@ -169,7 +288,7 @@ function Suggestions() {
 
       {/* ===== 3. KẾT QUẢ TÌM KIẾM THỦ CÔNG ===== */}
       {searchResults.length > 0 && (
-        <section className="max-w-[1200px] mx-auto px-5 py-10">
+        <section ref={resultsRef} className="max-w-[1200px] mx-auto px-5 py-10 scroll-mt-20">
           <div className="bg-[#112418] p-10 rounded-[2rem] border border-white/10">
             <h3 className="text-4xl font-heading font-bold text-[#F5F2EB] mb-10 text-center">Lộ Trình Đề Xuất <span className="text-[#D4AF37] italic font-light">Cho Bạn</span></h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -190,7 +309,7 @@ function Suggestions() {
             <p className="text-[#D4AF37] font-bold uppercase tracking-[0.3em] text-xs mb-3">Xu Hướng Tháng {selectedMonth}</p>
             <h2 className="text-4xl font-heading font-bold text-[#F5F2EB]">Điểm Đến <span className="text-[#D4AF37] italic font-light">Đang Thịnh Hành</span></h2>
           </div>
-          <p className="text-white/50 text-sm mt-4 md:mt-0">Dựa trên tìm kiếm của cộng đồng ExploreVN</p>
+          <p className="text-white/50 text-sm mt-4 md:mt-0">Dựa trên tìm kiếm của cộng đồng WanderlyVietNam</p>
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -221,31 +340,12 @@ function Suggestions() {
         </div>
       </section>
 
-      {/* ===== 5. GẦN BẠN NHẤT (GPS) ===== */}
-      <section className="max-w-[1200px] mx-auto px-5 py-16 border-t border-white/5">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
-          <p className="text-[#D4AF37] font-bold uppercase tracking-[0.3em] text-xs mb-3">Vị Trí Của Bạn</p>
-          <h2 className="text-4xl font-heading font-bold text-[#F5F2EB]">Gần Bạn <span className="text-[#C27A5B] italic font-light">Nhất</span></h2>
-          <p className="text-white/50 text-sm mt-3">Được gợi ý tự động dựa trên vị trí GPS hiện tại của bạn</p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {gpsResults.map((loc, i) => (
-            <motion.div
-              key={loc.id}
-              initial="hidden" whileInView="visible" viewport={{ once: true }}
-              variants={{ hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0, transition: { delay: i * 0.15, duration: 0.6 } } }}
-            >
-              <LocationCard loc={loc} month={selectedMonth} />
-            </motion.div>
-          ))}
-        </div>
-      </section>
+      {/* ===== 5. GẦN BẠN NHẤT (GPS) ĐÃ BỊ LOẠI BỎ (GỘP VÀO KẾT QUẢ TÌM KIẾM) ===== */}
 
       {/* ===== 6. ĐÁNH GIÁ TỪ CỘNG ĐỒNG ===== */}
       <section className="max-w-[1200px] mx-auto px-5 py-16 border-t border-white/5">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
-          <p className="text-[#C27A5B] font-bold uppercase tracking-[0.3em] text-xs mb-3">Cộng Đồng ExploreVN</p>
+          <p className="text-[#C27A5B] font-bold uppercase tracking-[0.3em] text-xs mb-3">Cộng Đồng WanderlyVietNam</p>
           <h2 className="text-4xl font-heading font-bold text-[#F5F2EB]">Góc <span className="text-[#D4AF37] italic font-light">Chia Sẻ</span></h2>
           <p className="text-white/50 text-sm mt-3">Trải nghiệm thực tế từ những người đã đi</p>
         </motion.div>

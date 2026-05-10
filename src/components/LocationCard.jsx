@@ -46,9 +46,16 @@ const LocationCard = ({ loc, month }) => {
         </h4>
 
         {/* Vị trí & khoảng cách */}
-        <div className="flex items-center gap-2 text-white/50 text-sm">
-          <span className="text-[#D4AF37]">📍</span>
-          <span className="font-medium">{loc.location || (loc.distance ? `Cách ${Math.round(loc.distance)} km` : 'Vị trí xác định')}</span>
+        <div className="flex items-center justify-between text-white/50 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-[#D4AF37]">📍</span>
+            <span className="font-medium">{loc.location || 'Vị trí xác định'}</span>
+          </div>
+          {loc.distance !== undefined && (
+            <span className="text-[#D4AF37] text-xs font-bold bg-[#D4AF37]/10 px-2 py-1 rounded-full border border-[#D4AF37]/20">
+              Cách {Math.round(loc.distance)} km
+            </span>
+          )}
         </div>
 
         {/* Ước tính thời gian di chuyển */}
@@ -56,12 +63,16 @@ const LocationCard = ({ loc, month }) => {
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-white/5 rounded-xl px-3 py-2 text-center border border-white/5">
               <div className="text-base">🏍️</div>
-              <div className="text-white/80 text-xs font-bold mt-0.5">{travel.byBike} phút</div>
+              <div className="text-white/80 text-xs font-bold mt-0.5">
+                {travel.byBike >= 60 ? `${Math.floor(travel.byBike / 60)}h ${travel.byBike % 60}m` : `${travel.byBike} phút`}
+              </div>
               <div className="text-white/30 text-[10px]">xe máy</div>
             </div>
             <div className="bg-white/5 rounded-xl px-3 py-2 text-center border border-white/5">
               <div className="text-base">🚗</div>
-              <div className="text-white/80 text-xs font-bold mt-0.5">{travel.byCar} phút</div>
+              <div className="text-white/80 text-xs font-bold mt-0.5">
+                {travel.byCar >= 60 ? `${Math.floor(travel.byCar / 60)}h ${travel.byCar % 60}m` : `${travel.byCar} phút`}
+              </div>
               <div className="text-white/30 text-[10px]">ô tô</div>
             </div>
           </div>

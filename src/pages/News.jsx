@@ -116,7 +116,7 @@ function News() {
       <div className="pt-28 pb-6 px-5 max-w-[1400px] mx-auto">
         <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 mb-6">
           <div>
-            <p className="text-[#D4AF37] font-bold uppercase tracking-[0.4em] text-xs mb-2">ExploreVN · Thời Sự Du Lịch</p>
+            <p className="text-[#D4AF37] font-bold uppercase tracking-[0.4em] text-xs mb-2">WanderlyVietNam · Thời Sự Du Lịch</p>
             <h1 className="text-5xl md:text-6xl font-heading font-bold text-[#F5F2EB] leading-none">
               Tin <span className="text-[#D4AF37] italic font-light">Tức</span>
             </h1>

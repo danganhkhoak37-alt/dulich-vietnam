@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    cb(null, `avatar_${Date.now()}${ext}`);
+    cb(null, `${file.fieldname}_${Date.now()}${ext}`);
   },
 });
 const upload = multer({
@@ -203,17 +203,7 @@ async function initDB() {
     }
   }
 
-  // Seed posts
-  const pc = await db.get('SELECT COUNT(*) as c FROM posts');
-  if (pc.c === 0) {
-    const u = await db.get('SELECT id FROM users LIMIT 1');
-    if (u) {
-      await db.run('INSERT INTO posts (user_id,content,location,image_url,likes) VALUES (?,?,?,?,?)',
-        [u.id,'Sáng sớm ở Sapa gặp màn sương này không còn gì tuyệt hơn! Ruộng bậc thang vàng rực — thiên đường trần gian. 🌿 #SapaMuaLua','Sapa, Lào Cai','https://media.vietravel.com/images/Content/dia-diem-du-lich-sapa-1.png',142]);
-      await db.run('INSERT INTO posts (user_id,content,location,image_url,likes) VALUES (?,?,?,?,?)',
-        [u.id,'Đêm Rằm ở Hội An thả đèn hoa đăng. Ánh đèn lung linh phản chiếu trên sông Hoài — khoảnh khắc này theo mình cả đời 🏮 #HoiAnByNight','Hội An, Quảng Nam','https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=800',89]);
-    }
-  }
+  // Seed posts removed to allow only real posts
 
   console.log('✅ ExploreVN Database sẵn sàng!');
 }
@@ -313,6 +303,17 @@ app.post('/api/upload/cover/:id', upload.single('cover'), async (req, res) => {
   }
 });
 
+// Upload post image
+app.post('/api/upload/post', upload.single('post_image'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ status: 'error', message: 'Không có file được tải lên' });
+  try {
+    const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+    res.json({ status: 'success', image_url: imageUrl });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
 // ============================================================
 // LOCATIONS APIs  
 // ============================================================
@@ -404,10 +405,10 @@ app.get('/api/posts', async (req, res) => {
 
 app.post('/api/posts', async (req, res) => {
   const { user_id, content, location, image_url } = req.body;
-  if (!user_id || !content) return res.status(400).json({ status: 'error', message: 'Thiếu dữ liệu' });
+  if (!user_id || (!content && !image_url)) return res.status(400).json({ status: 'error', message: 'Thiếu dữ liệu' });
   try {
     const r = await db.run('INSERT INTO posts (user_id,content,location,image_url) VALUES (?,?,?,?)',
-      [user_id, content, location || null, image_url || null]);
+      [user_id, content || '', location || null, image_url || null]);
     const post = await db.get(`SELECT p.*,u.full_name as user_name,u.avatar_url FROM posts p JOIN users u ON p.user_id=u.id WHERE p.id=?`, [r.lastID]);
     res.json({ status: 'success', data: post });
   } catch (err) { res.status(500).json({ status: 'error', message: err.message }); }
@@ -494,7 +495,10 @@ app.post('/api/auth/google', async (req, res) => {
       headers: { Authorization: `Bearer ${access_token}` }
     });
     const g = await gRes.json();
-    if (!g.sub) throw new Error('Token không hợp lệ');
+    if (!g.sub) {
+      console.error('Google Auth Error:', g);
+      throw new Error('Token không hợp lệ hoặc hết hạn');
+    }
     const { sub: google_id, email, name, picture } = g;
     let user = await db.get('SELECT * FROM users WHERE google_id=?', [google_id]);
     if (!user && email) user = await db.get('SELECT * FROM users WHERE email=?', [email]);
@@ -502,18 +506,19 @@ app.post('/api/auth/google', async (req, res) => {
       const username = email || `google_${google_id}`;
       const r = await db.run(
         'INSERT INTO users (username,password,full_name,email,google_id,oauth_provider,avatar_url) VALUES (?,?,?,?,?,?,?)',
-        [username, '', name, email || null, google_id, 'google', picture]
+        [username, '', name || null, email || null, google_id, 'google', picture || null]
       );
       user = await db.get('SELECT * FROM users WHERE id=?', [r.lastID]);
     } else {
       await db.run('UPDATE users SET google_id=?,email=?,oauth_provider=?,avatar_url=? WHERE id=?',
-        [google_id, email || user.email, 'google', picture || user.avatar_url, user.id]);
+        [google_id, email || user.email || null, 'google', picture || user.avatar_url || null, user.id]);
       user = await db.get('SELECT * FROM users WHERE id=?', [user.id]);
     }
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
     const { password: _, ...safeUser } = user;
     res.json({ status: 'success', user: safeUser, token });
   } catch (err) {
+    console.error('Google Backend Error:', err);
     res.status(401).json({ status: 'error', message: 'Xác thực Google thất bại: ' + err.message });
   }
 });
@@ -547,6 +552,62 @@ app.post('/api/auth/facebook', async (req, res) => {
   } catch (err) {
     res.status(401).json({ status: 'error', message: 'Xác thực Facebook thất bại: ' + err.message });
   }
+});
+
+// ============================================================
+// TRAVEL SUGGESTIONS API (DISTANCE BASED)
+// ============================================================
+
+const DESTINATIONS = [
+  { id: 1, name: 'Hội An', location: 'Quảng Nam', lat: 15.8801, lon: 108.3380, tag: 'Văn Hoá', best_month_start: 2, best_month_end: 4, image_url: 'https://hoiancreativecity.com/uploads/images/thang%202-2023/hoi-an-gd659f3b8f_1920-1280x853.jpg' },
+  { id: 2, name: 'Bà Nà Hills', location: 'Đà Nẵng', lat: 15.9972, lon: 107.9880, tag: 'Check-in', best_month_start: 3, best_month_end: 8, image_url: 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=800' },
+  { id: 3, name: 'Mỹ Sơn', location: 'Quảng Nam', lat: 15.7645, lon: 108.1219, tag: 'Lịch Sử', best_month_start: 2, best_month_end: 5, image_url: 'https://ik.imagekit.io/tvlk/blog/2023/09/thanh-dia-my-son-32.jpg?tr=q-70,c-at_max,w-800,h-600' },
+  { id: 4, name: 'Sapa', location: 'Lào Cai', lat: 22.3364, lon: 103.8438, tag: 'Khám Phá', best_month_start: 9, best_month_end: 11, image_url: 'https://media.vietravel.com/images/Content/dia-diem-du-lich-sapa-1.png' },
+  { id: 5, name: 'Vịnh Hạ Long', location: 'Quảng Ninh', lat: 20.8449, lon: 107.1362, tag: 'Biển Đảo', best_month_start: 9, best_month_end: 11, image_url: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=2070&auto=format&fit=crop' },
+  { id: 6, name: 'Tràng An', location: 'Ninh Bình', lat: 20.2520, lon: 105.9080, tag: 'Thiên Nhiên', best_month_start: 1, best_month_end: 3, image_url: 'https://images.vietnamtourism.gov.vn/vn/images/2021/trang_an.jpg' },
+  { id: 7, name: 'Phú Quốc', location: 'Kiên Giang', lat: 10.2899, lon: 103.9840, tag: 'Nghỉ Dưỡng', best_month_start: 11, best_month_end: 4, image_url: 'https://mtcs.1cdn.vn/2023/03/23/quan-dao-an-thoi-phu-quoc.jpg' },
+  { id: 8, name: 'Đà Lạt', location: 'Lâm Đồng', lat: 11.9404, lon: 108.4583, tag: 'Chữa Lành', best_month_start: 11, best_month_end: 3, image_url: 'https://bizweb.dktcdn.net/thumb/1024x1024/100/093/257/products/thung-lung-ngan-hoa.jpg' },
+  { id: 9, name: 'Cố đô Huế', location: 'Thừa Thiên Huế', lat: 16.4637, lon: 107.5909, tag: 'Di Sản', best_month_start: 2, best_month_end: 4, image_url: 'https://kinhtevadubao.vn/stores/news_dataimages/kinhtevadubaovn/092018/18/14/1537170510-news-1243820210326195207.3736490.jpg' },
+  { id: 10, name: 'Tà Xùa', location: 'Hà Giang', lat: 22.8233, lon: 104.9836, tag: 'Phượt', best_month_start: 9, best_month_end: 11, image_url: 'https://datviettour.com.vn/uploads/images/mien-bac/ha-giang/hinh-danh-thang/cot-co-lung-cu.jpg' },
+  { id: 11, name: 'Mũi Né', location: 'Bình Thuận', lat: 10.9329, lon: 108.2882, tag: 'Biển Cát', best_month_start: 12, best_month_end: 4, image_url: 'https://lalago.vn/wp-content/uploads/2025/05/image7-5.jpg' },
+  { id: 12, name: 'Cát Bà', location: 'Hải Phòng', lat: 20.7259, lon: 106.9934, tag: 'Biển Đảo', best_month_start: 4, best_month_end: 8, image_url: 'https://pystravel.vn/_next/image?url=https%3A%2F%2Fbooking.pystravel.vn%2Fuploads%2Fposts%2Falbums%2F6274%2Fe073a7e3cd255785f32421c891f3c02f.jpg&w=1920&q=75' },
+  { id: 13, name: 'Phong Nha - Kẻ Bàng', location: 'Quảng Bình', lat: 17.5815, lon: 106.2829, tag: 'Hang Động', best_month_start: 3, best_month_end: 8, image_url: 'https://ecotour.com.vn/wp-content/uploads/2025/05/du-lich-dong-phong-nha-ke-bang-quang-binh.jpeg' },
+  { id: 14, name: 'Gành Đá Đĩa', location: 'Phú Yên', lat: 13.3444, lon: 109.2994, tag: 'Kỳ Quan', best_month_start: 3, best_month_end: 8, image_url: 'https://statics.vinpearl.com/ganh-da-dia-phu-yen_1751078702.jpg' },
+  { id: 15, name: 'Cù Lao Chàm', location: 'Quảng Nam', lat: 15.9614, lon: 108.5134, tag: 'Biển Đảo', best_month_start: 3, best_month_end: 8, image_url: 'https://drt.danang.vn/content/images/2024/06/cu-lao-cham-o-dau-1.jpg' }
+];
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of the Earth in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return Math.round(R * c);
+}
+
+app.get('/api/travel-suggestions', (req, res) => {
+  const { userLat, userLng } = req.query;
+  
+  if (!userLat || !userLng || userLat === 'undefined' || userLng === 'undefined') {
+    return res.status(400).json({ status: 'error', message: 'Thiếu toạ độ người dùng' });
+  }
+
+  const uLat = parseFloat(userLat);
+  const uLng = parseFloat(userLng);
+
+  let results = DESTINATIONS.map(dest => {
+    const distance = calculateDistance(uLat, uLng, dest.lat, dest.lon);
+    // Estimated travel time in minutes based on average speed of 60km/h
+    const travel_time = Math.round((distance / 60) * 60); 
+    return { ...dest, distance, travel_time };
+  });
+
+  // Sort by closest distance
+  results.sort((a, b) => a.distance - b.distance);
+
+  res.json({ status: 'success', data: results });
 });
 
 app.use((req, res) => res.status(404).json({ message: 'Route không tồn tại' }));

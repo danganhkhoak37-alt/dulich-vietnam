@@ -12,7 +12,7 @@ export default {
         'deep-green': '#163333',    // Xanh đậm sang trọng
         'gold-premium': '#c7a73d',  // Vàng Gold cao cấp
         'soft-bg': '#F4F4F2',       // Nền be xám dịu mắt
-        'moss-green': '#2d7a47',    // Giữ lại xanh rêu làm màu phụ nếu cần
+        'moss-green': '#83a58e',    // Giữ lại xanh rêu làm màu phụ nếu cần
       },
       fontFamily: {
         // Khai báo font để bạn dùng class font-allura hoặc font-dancing dễ dàng
