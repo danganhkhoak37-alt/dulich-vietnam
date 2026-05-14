@@ -390,7 +390,7 @@ function Community() {
     try {
       const url = loggedInUser 
         ? `${API_URL}/api/posts?user_id=${loggedInUser.id}`
-        : '${API_URL}/api/posts';
+        : `${API_URL}/api/posts`;
       const res = await fetch(url);
       const data = await res.json();
       if (data && data.length > 0) setPosts(data);
@@ -418,7 +418,7 @@ function Community() {
       if (selectedFile) {
         const formData = new FormData();
         formData.append('post_image', selectedFile);
-        const uploadRes = await fetch('${API_URL}/api/upload/post', {
+        const uploadRes = await fetch(`${API_URL}/api/upload/post`, {
           method: 'POST',
           body: formData,
         });
@@ -428,7 +428,7 @@ function Community() {
         }
       }
 
-      const res = await fetch('${API_URL}/api/posts', {
+      const res = await fetch(`${API_URL}/api/posts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: loggedInUser.id, content: newPostContent, location: newPostLocation, image_url: finalImageUrl }),
