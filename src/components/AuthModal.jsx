@@ -108,9 +108,6 @@ function AuthModal({ isOpen, onClose, onAuthSuccess, defaultTab }) {
   };
 
   // ─── Facebook ────────────────────────────────────────────────
-    }
-  };
-
   const handleQuickLogin = async () => {
     setOauthLoading('facebook');
     try {
@@ -124,6 +121,12 @@ function AuthModal({ isOpen, onClose, onAuthSuccess, defaultTab }) {
     }
     setOauthLoading('');
   };
+
+  const handleFacebookLogin = () => {
+    if (!window.FB) {
+      setError('Facebook SDK chưa tải xong, thử lại sau vài giây!');
+      return;
+    }
     setOauthLoading('facebook');
     setError('');
     window.FB.login(async (response) => {
