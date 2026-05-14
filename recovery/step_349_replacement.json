@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Update CATEGORIES to include tags and add click handler\"",
+  "EndLine": "45",
+  "Instruction": "\"Add tags to CATEGORIES\"",
+  "ReplacementContent": "\"const CATEGORIES = [\\n  { label: 'Chữa Lành & Thiên Nhiên', icon: '🌿', desc: 'Rừng, hang động, cắm trại', color: 'from-green-900 to-green-700', tags: ['Thiên Nhiên', 'Chữa Lành', 'Hang Động', 'Kỳ Quan'] },\\n  { label: 'Biển Đ\n<truncated 606 bytes>",
+  "StartLine": "40",
+  "TargetContent": "\"const CATEGORIES = [\\n  { label: 'Chữa Lành & Thiên Nhiên', icon: '🌿', desc: 'Rừng, hang động, cắm trại', color: 'from-green-900 to-green-700' },\\n  { label: 'Biển Đảo Mùa Hè', icon: '🌊', desc: 'Resort, lặn san hô, hoàng hô\n<truncated 322 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\Suggestions.jsx\""
+}

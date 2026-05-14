@@ -1,0 +1,6 @@
+{
+  "Description": "\"Fixed the core bug: there were two conflicting `/api/travel-suggestions` routes. Express was always matching the first one which only returned 6 results from the DB. Now we merge both data sources (DB + DESTINATIONS array) into a single route with no resu\n<truncated 45 bytes>",
+  "Instruction": "\"Merge the two travel-suggestions routes: combine DB locations + DESTINATIONS array, remove the slice(0,6) cap, return all sorted by distance. Also remove the duplicate second route.\"",
+  "ReplacementChunks": "[{\"AllowMultiple\":false,\"EndLine\":342,\"ReplacementContent\":\"app.get('/api/travel-suggestions', async (req, res) => {\\n  const { userLat, userLng, currentMonth } = req.query;\\n\\n  if (!userLat || !userLng || userLat === 'undefined' || userLng === 'undefined\n<truncated 4713 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\backend\\\\server.js\""
+}

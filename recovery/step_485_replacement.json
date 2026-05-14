@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Update categories and fetch logic for VnExpress news\"",
+  "EndLine": "80",
+  "Instruction": "\"Update CATEGORIES list to include Ẩm thực, Lễ hội, and Thời tiết. Map them to VnExpress sub-sections.\"",
+  "ReplacementContent": "\"const CATEGORIES = [\\n  { id: 'all', label: 'Tất Cả', icon: '📰' },\\n  { id: 'diem-den', label: 'Điểm Đến & Lễ Hội', icon: '🗺️' },\\n  { id: 'am-thuc', label: 'Ẩm Thực Du Lịch', icon: '🍲' },\\n  { id: 'tu-van', label: 'Thời T\n<truncated 113 bytes>",
+  "StartLine": "74",
+  "TargetContent": "\"const CATEGORIES = [\\n  { id: 'all', label: 'Tất Cả', icon: '📰' },\\n  { id: 'visa', label: 'Chính sách & Visa', icon: '📋' },\\n  { id: 'hangkhong', label: 'Hàng Không', icon: '✈️' },\\n  { id: 'sukien', label: 'Sự Kiện & Lễ Hội', i\n<truncated 90 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\News.jsx\""
+}

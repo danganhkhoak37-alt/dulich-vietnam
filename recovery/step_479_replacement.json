@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Switch to VnExpress news source and support categories\"",
+  "EndLine": "475",
+  "Instruction": "\"Replace BaoMoi scraper with VnExpress scraper. Support multiple categories and ensure data integrity.\"",
+  "ReplacementContent": "\"app.get('/api/news/vnexpress', async (req, res) => {\\n  const { category } = req.query;\\n  let url = 'https://vnexpress.net/du-lich';\\n  \\n  if (category === 'am-thuc') url = 'https://vnexpress.net/du-lich/am-thuc';\\n  else if (category === 'diem-den') ur\n<truncated 1642 bytes>",
+  "StartLine": "439",
+  "TargetContent": "\"app.get('/api/news/baomoi', async (req, res) => {\\n  try {\\n    const response = await axios.get('https://baomoi.com/du-lich.epi', {\\n      headers: {\\n        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)\n<truncated 1443 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\backend\\\\server.js\""
+}

@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Fix newline splitting in update_destinations.js\"",
+  "EndLine": "141",
+  "Instruction": "\"Use regex for splitting lines\"",
+  "ReplacementContent": "\"const content = fs.readFileSync('server.js', 'utf8');\\nconst lines = content.split(/\\\\r?\\\\n/);\\nconst startIdx = lines.findIndex(l => l.startsWith('const DESTINATIONS = ['));\\nconst endIdx = lines.findIndex((l, i) => i > startIdx && l.startsWith('];'));\\n\n<truncated 464 bytes>",
+  "StartLine": "129",
+  "TargetContent": "\"const content = fs.readFileSync('server.js', 'utf8');\\nconst lines = content.split('\\\\n');\\nconst startIdx = lines.findIndex(l => l.startsWith('const DESTINATIONS = ['));\\nconst endIdx = lines.findIndex((l, i) => i > startIdx && l.startsWith('];'));\\n\\nif\n<truncated 460 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\backend\\\\update_destinations.js\""
+}

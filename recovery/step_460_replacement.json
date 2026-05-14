@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Exclude slider items from news list to avoid duplication\"",
+  "EndLine": "142",
+  "Instruction": "\"Update the filtered news list to skip the first 5 items (which are already shown in the slider).\"",
+  "ReplacementContent": "\"  const filtered = (baomoiNews.length > 0 ? baomoiNews.slice(5) : NEWS_LIST).filter((n) => {\\n    const matchCat = activeCategory === 'all' || (n.tags && n.tags.includes(activeCategory)) || n.category === 'BaoMoi Du Lịch';\\n    const matchSearch = n.tit\n<truncated 98 bytes>",
+  "StartLine": "138",
+  "TargetContent": "\"  const filtered = (baomoiNews.length > 0 ? baomoiNews : NEWS_LIST).filter((n) => {\\n    const matchCat = activeCategory === 'all' || (n.tags && n.tags.includes(activeCategory)) || n.category === 'BaoMoi Du Lịch';\\n    const matchSearch = n.title.toLowe\n<truncated 89 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\News.jsx\""
+}

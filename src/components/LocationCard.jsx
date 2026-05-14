@@ -1,7 +1,10 @@
-import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const LocationCard = ({ loc, month }) => {
-  const isBestSeason = month >= loc.best_month_start && month <= loc.best_month_end;
+const LocationCard = ({ loc, month, onClick }) => {
+  const navigate = useNavigate();
+  const isBestSeason = loc.best_month_start <= loc.best_month_end
+    ? (month >= loc.best_month_start && month <= loc.best_month_end)
+    : (month >= loc.best_month_start || month <= loc.best_month_end);
 
   // Ước tính thời gian di chuyển (dựa trên khoảng cách)
   const estimateTravelTime = (distance) => {
@@ -14,7 +17,10 @@ const LocationCard = ({ loc, month }) => {
   const travel = estimateTravelTime(loc.distance);
 
   return (
-    <div className="group bg-[#112418] rounded-[2rem] overflow-hidden border border-white/5 hover:border-[#D4AF37]/40 hover:shadow-[0_15px_40px_rgba(212,175,55,0.15)] transition-all duration-500 relative">
+    <div 
+      onClick={onClick}
+      className="group bg-[#112418] rounded-[2rem] overflow-hidden border border-white/5 hover:border-[#D4AF37]/40 hover:shadow-[0_15px_40px_rgba(212,175,55,0.15)] transition-all duration-500 relative cursor-pointer"
+    >
 
       {/* Badge mùa đẹp */}
       {isBestSeason && (
@@ -83,9 +89,16 @@ const LocationCard = ({ loc, month }) => {
           <span className="text-white/30 text-xs uppercase tracking-widest font-bold">
             Mùa đẹp: T{loc.best_month_start}–T{loc.best_month_end}
           </span>
-          <button className="p-2.5 rounded-xl bg-white/5 text-white/60 hover:bg-[#D4AF37] hover:text-black transition-all duration-300 border border-white/5">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate('/guide', { state: { locationName: loc.name, province: loc.location } });
+            }}
+            title="Xem cẩm nang chi tiết"
+            className="p-2.5 rounded-xl bg-white/5 text-white/60 hover:bg-[#D4AF37] hover:text-black transition-all duration-300 border border-white/5 group/btn"
+          >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
           </button>
         </div>

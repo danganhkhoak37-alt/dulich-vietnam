@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import API_URL from '../config/api';
 
 const RANK_SYSTEM = [
   { name: 'Tân Binh',      icon: '🌱', min: 0,  max: 5,   color: 'text-gray-400' },
@@ -52,7 +53,7 @@ function Profile() {
     const fd = new FormData();
     fd.append('avatar', file);
     try {
-      const res = await fetch(`http://localhost:5000/api/upload/avatar/${loggedInUser.id}`, {
+      const res = await fetch(`${API_URL}/api/upload/avatar/${loggedInUser.id}`, {
         method: 'POST', body: fd,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -80,7 +81,7 @@ function Profile() {
     const fd = new FormData();
     fd.append('cover', file);
     try {
-      const res = await fetch(`http://localhost:5000/api/upload/cover/${loggedInUser.id}`, {
+      const res = await fetch(`${API_URL}/api/upload/cover/${loggedInUser.id}`, {
         method: 'POST', body: fd,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -97,11 +98,11 @@ function Profile() {
 
   useEffect(() => {
     if (!loggedInUser) { navigate('/'); return; }
-    fetch(`http://localhost:5000/api/profile/${loggedInUser.id}`)
+    fetch(`${API_URL}/api/profile/${loggedInUser.id}`)
       .then(r => r.json()).then(data => { setUser(data); setFormData(data); });
-    fetch(`http://localhost:5000/api/users/${loggedInUser.id}/posts`)
+    fetch(`${API_URL}/api/users/${loggedInUser.id}/posts`)
       .then(r => r.json()).then(setPosts).catch(() => {});
-    fetch(`http://localhost:5000/api/users/${loggedInUser.id}/saved-posts`)
+    fetch(`${API_URL}/api/users/${loggedInUser.id}/saved-posts`)
       .then(r => r.json()).then(setSavedPosts).catch(() => {});
   }, []);
 
@@ -109,7 +110,7 @@ function Profile() {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/profile/${user.id}`, {
+      const res = await fetch(`${API_URL}/api/profile/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

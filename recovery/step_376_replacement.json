@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Filter by exactLocations instead of tags\"",
+  "EndLine": "69",
+  "Instruction": "\"Update the filtering logic to use cat.exactLocations\"",
+  "ReplacementContent": "\"      const categoryResults = combinedResults.filter(item => cat.exactLocations.includes(item.name));\"",
+  "StartLine": "69",
+  "TargetContent": "\"      const categoryResults = combinedResults.filter(item => cat.tags.includes(item.tag));\"",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\Suggestions.jsx\""
+}

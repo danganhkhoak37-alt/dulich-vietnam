@@ -1,0 +1,653 @@
+[
+  {
+    "name": "Biển Sầm Sơn",
+    "province": "Thanh Hóa",
+    "hangTrang": "Đồ bơi, kem chống nắng, kính mát.",
+    "tietKiem": "Thỏa thuận giá trước khi thuê xe điện hoặc ăn uống.",
+    "anToan": "Chỉ bơi trong khu vực đã giăng cờ an toàn.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng tắm biển, chiều dạo núi Trường Lệ, tối khám phá chợ đêm."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Biển Sầm Sơn (Thanh Hóa) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Biển Sầm Sơn (Thanh Hóa) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Thành Nhà Hồ",
+    "province": "Thanh Hóa",
+    "hangTrang": "Ô, mũ rộng vành, giày đi bộ.",
+    "tietKiem": "Mang theo nước uống cá nhân.",
+    "anToan": "Tránh leo trèo lên các khối đá tường thành cổ.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng tham quan cổng thành, trưa thưởng thức chè lam."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Thành Nhà Hồ (Thanh Hóa) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Thành Nhà Hồ (Thanh Hóa) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Làng Sen quê Bác",
+    "province": "Nghệ An",
+    "hangTrang": "Trang phục lịch sự, nghiêm trang.",
+    "tietKiem": "Miễn phí vé vào cửa.",
+    "anToan": "Đi theo hàng lối, giữ trật tự.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Dành buổi sáng tham quan nhà Bác và ao sen."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Làng Sen quê Bác (Nghệ An) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Làng Sen quê Bác (Nghệ An) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Biển Cửa Lò",
+    "province": "Nghệ An",
+    "hangTrang": "Đồ bơi, khăn tắm, dép kẹp.",
+    "tietKiem": "Ăn hải sản tại các quán lùi sâu vào trong đường nhánh.",
+    "anToan": "Chú ý các dòng chảy xa bờ.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Chiều tắm biển, tối thuê xe đạp đôi dạo bờ biển."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Biển Cửa Lò (Nghệ An) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Biển Cửa Lò (Nghệ An) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Chùa Hương Tích",
+    "province": "Hà Tĩnh",
+    "hangTrang": "Giày leo núi, gậy chống, nước uống.",
+    "tietKiem": "Đi cáp treo 1 chiều và đi bộ 1 chiều xuống.",
+    "anToan": "Bám chắc tay vịn, cẩn thận bậc đá trơn.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng đi thuyền qua hồ, trưa lên đỉnh núi lễ Phật."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Chùa Hương Tích (Hà Tĩnh) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Chùa Hương Tích (Hà Tĩnh) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Động Phong Nha",
+    "province": "Quảng Bình",
+    "hangTrang": "Quần áo mau khô, túi chống nước.",
+    "tietKiem": "Mua vé combo kết hợp tham quan hang và tắm suối.",
+    "anToan": "Mặc áo phao khi đi thuyền vào hang.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng đi thuyền ngắm động, chiều chơi zipline sông Chày."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Động Phong Nha (Quảng Bình) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Động Phong Nha (Quảng Bình) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Đại Nội Huế",
+    "province": "Thừa Thiên Huế",
+    "hangTrang": "Áo dài, nón lá, ô che nắng.",
+    "tietKiem": "Mua vé tuyến gộp Đại Nội và các Lăng.",
+    "anToan": "Không chạm tay vào hiện vật cổ.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng khám phá cung điện, tối nghe ca Huế trên sông Hương."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Đại Nội Huế (Thừa Thiên Huế) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Đại Nội Huế (Thừa Thiên Huế) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Vịnh Hạ Long",
+    "province": "Quảng Ninh",
+    "hangTrang": "Đồ bơi, kem chống nắng.",
+    "tietKiem": "Mua vé tàu ghép trong ngày.",
+    "anToan": "Mặc áo phao khi chèo kayak.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng thăm động Thiên Cung, chiều chèo thuyền quanh các đảo đá."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Vịnh Hạ Long (Quảng Ninh) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Vịnh Hạ Long (Quảng Ninh) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Đồng Văn",
+    "province": "Hà Giang",
+    "hangTrang": "Quần áo ấm, giày thể thao.",
+    "tietKiem": "Ăn tại chợ phiên.",
+    "anToan": "Giữ ấm cơ thể vào ban đêm.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng dạo phố cổ, thưởng thức cà phê cực bắc."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Đồng Văn (Hà Giang) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Đồng Văn (Hà Giang) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Mã Pí Lèng",
+    "province": "Hà Giang",
+    "hangTrang": "Áo gió, găng tay.",
+    "tietKiem": "Dừng nghỉ ngắm cảnh tự do.",
+    "anToan": "Lái xe cẩn thận, không đỗ ở góc cua khuất.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Chiều chạy xe dọc đèo ngắm sông Nho Quế."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Mã Pí Lèng (Hà Giang) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Mã Pí Lèng (Hà Giang) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Sa Pa",
+    "province": "Lào Cai",
+    "hangTrang": "Áo len, ô nhỏ che sương.",
+    "tietKiem": "Đặt homestay xa trung tâm.",
+    "anToan": "Cẩn thận đường trơn trượt.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Tối dạo thị trấn, ăn đồ nướng."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Sa Pa (Lào Cai) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Sa Pa (Lào Cai) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Fansipan",
+    "province": "Lào Cai",
+    "hangTrang": "Áo giữ nhiệt, miếng dán ấm.",
+    "tietKiem": "Mua vé cáp treo online.",
+    "anToan": "Đi chậm tránh sốc độ cao.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng đi cáp treo lên đỉnh săn mây."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Fansipan (Lào Cai) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Fansipan (Lào Cai) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Tràng An",
+    "province": "Ninh Bình",
+    "hangTrang": "Nón lá, kem chống nắng.",
+    "tietKiem": "Mang đồ ăn vặt lên đò.",
+    "anToan": "Mặc áo phao, không đứng lên khi đò đi.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng ngồi đò xuyên hang động."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Tràng An (Ninh Bình) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Tràng An (Ninh Bình) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Hồ Gươm - Phố Cổ",
+    "province": "Hà Nội",
+    "hangTrang": "Giày đi bộ, bản đồ.",
+    "tietKiem": "Đi bộ và ăn vỉa hè.",
+    "anToan": "Cảnh giác túi xách chỗ đông người.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng dạo hồ, trưa foodtour phố cổ."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Hồ Gươm - Phố Cổ (Hà Nội) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Hồ Gươm - Phố Cổ (Hà Nội) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Đồi chè Mộc Châu",
+    "province": "Sơn La",
+    "hangTrang": "Váy áo đẹp, áo gió.",
+    "tietKiem": "Tự do vào tham quan đồi chè trái tim.",
+    "anToan": "Không làm gãy cành chè.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng chụp ảnh săn sương trên đồi chè."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Đồi chè Mộc Châu (Sơn La) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Đồi chè Mộc Châu (Sơn La) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Mù Cang Chải",
+    "province": "Yên Bái",
+    "hangTrang": "Sạc dự phòng, máy ảnh.",
+    "tietKiem": "Ngủ tại nhà sàn cộng đồng.",
+    "anToan": "Bước cẩn thận trên bờ ruộng hẹp.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Cả ngày dạo quanh ruộng bậc thang Mâm Xôi."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Mù Cang Chải (Yên Bái) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Mù Cang Chải (Yên Bái) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Thác Bản Giốc",
+    "province": "Cao Bằng",
+    "hangTrang": "Áo mưa mỏng, giày chống trơn.",
+    "tietKiem": "Bắt xe buýt từ trung tâm thành phố.",
+    "anToan": "Không bơi lội dưới chân thác.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng chụp ảnh sát dòng thác lớn."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Thác Bản Giốc (Cao Bằng) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Thác Bản Giốc (Cao Bằng) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Chợ Bến Thành",
+    "province": "TP.HCM",
+    "hangTrang": "Quần áo mát mẻ, ô dù.",
+    "tietKiem": "Trả giá khi mua đồ ở chợ.",
+    "anToan": "Đeo balo chéo phía trước ngực.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng mua sắm, tối ngắm Landmark 81."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Chợ Bến Thành (TP.HCM) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Chợ Bến Thành (TP.HCM) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Chợ nổi Cái Răng",
+    "province": "Cần Thơ",
+    "hangTrang": "Nón lá, áo khoác mỏng.",
+    "tietKiem": "Ghép xuồng tham quan.",
+    "anToan": "Bước cẩn thận khi sang ghe khác.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "5h sáng đi chợ nổi, trưa thăm Nhà cổ."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Chợ nổi Cái Răng (Cần Thơ) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Chợ nổi Cái Răng (Cần Thơ) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Rừng tràm Trà Sư",
+    "province": "An Giang",
+    "hangTrang": "Quần áo dài tay, thuốc muỗi.",
+    "tietKiem": "Ăn bún cá lề đường.",
+    "anToan": "Bôi thuốc chống muỗi khi vào rừng.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Trưa ngồi xuồng xuyên rừng tràm."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Rừng tràm Trà Sư (An Giang) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Rừng tràm Trà Sư (An Giang) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Bà Nà Hills",
+    "province": "Đà Nẵng",
+    "hangTrang": "Áo khoác giữ ấm.",
+    "tietKiem": "Mua vé cáp kèm buffet trưa.",
+    "anToan": "Chú ý phanh xe khi xuống dốc Sơn Trà.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng ngắm Cầu Vàng, chiều lượn Sơn Trà."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Bà Nà Hills (Đà Nẵng) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Bà Nà Hills (Đà Nẵng) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Phố cổ Hội An",
+    "province": "Quảng Nam",
+    "hangTrang": "Váy vintage, giày bệt.",
+    "tietKiem": "Thuê xe đạp dạo phố.",
+    "anToan": "Không đi vào rừng sâu ở Mỹ Sơn.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Chiều tối đi bộ thả hoa đăng."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Phố cổ Hội An (Quảng Nam) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Phố cổ Hội An (Quảng Nam) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Kỳ Co - Eo Gió",
+    "province": "Quy Nhơn",
+    "hangTrang": "Đồ bơi, nón có quai.",
+    "tietKiem": "Tự đi xe máy đến Eo Gió.",
+    "anToan": "Mặc áo phao khi đi cano.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng đi cano ra Kỳ Co, chiều ngắm hoàng hôn."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Kỳ Co - Eo Gió (Quy Nhơn) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Kỳ Co - Eo Gió (Quy Nhơn) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Gành Đá Đĩa",
+    "province": "Phú Yên",
+    "hangTrang": "Giày bám đá, mũ ô.",
+    "tietKiem": "Phí tham quan niêm yết khá rẻ.",
+    "anToan": "Không trèo lên mỏm đá chênh vênh.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng check-in Gành Đá Đĩa, chiều đi Bãi Xép."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Gành Đá Đĩa (Phú Yên) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Gành Đá Đĩa (Phú Yên) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Hang Rái",
+    "province": "Ninh Thuận",
+    "hangTrang": "Áo chống nắng.",
+    "tietKiem": "Mua nho trực tiếp tại vườn.",
+    "anToan": "Đi lại cẩn thận trên rạn san hô cổ.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng chụp ảnh Hang Rái, trưa ghé vườn nho."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Hang Rái (Ninh Thuận) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Hang Rái (Ninh Thuận) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Bàu Trắng",
+    "province": "Bình Thuận",
+    "hangTrang": "Khăn trùm đầu chống cát.",
+    "tietKiem": "Đi bộ tự do thay vì thuê jeep.",
+    "anToan": "Tuân thủ an toàn trên đảo Phú Quý.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng sớm ngắm bình minh trên đồi cát."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Khám phá trọn vẹn Bàu Trắng (Bình Thuận) - N2: Thăm các điểm làng nghề/chợ địa phương lân cận."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Bàu Trắng (Bình Thuận) - N2: Di chuyển sang địa danh nổi tiếng kế bên cùng tỉnh - N3: Mua sắm đặc sản và về."
+      }
+    ]
+  },
+  {
+    "name": "Đà Lạt",
+    "province": "Lâm Đồng",
+    "hangTrang": "Áo khoác, khăn quàng cổ (Đà Lạt se lạnh quanh năm).",
+    "tietKiem": "Thuê xe máy tự đi để tiết kiệm chi phí di chuyển giữa các đồi.",
+    "anToan": "Cẩn thận khi lái xe trên các cung đường đèo nhiều sương mù.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng đi săn mây ở đồi chè Cầu Đất, chiều tham quan quảng trường Lâm Viên."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Tham quan các thác nước và dinh Bảo Đại - N2: Đi dạo Hồ Xuân Hương và chợ đêm Đà Lạt."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Trung tâm Đà Lạt - N2: Khám phá các farmhouse/coffee view đồi - N3: Mua sắm đặc sản mứt, rau củ và về."
+      }
+    ]
+  },
+  {
+    "name": "Phú Quốc",
+    "province": "Kiên Giang",
+    "hangTrang": "Đồ bơi, kính lặn, dép đi biển.",
+    "tietKiem": "Nên đặt vé máy bay và khách sạn trước 1-2 tháng để có giá tốt.",
+    "anToan": "Tuân thủ hướng dẫn an toàn khi lặn biển ngắm san hô.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Dành trọn ngày ở VinWonders hoặc Sun World Hòn Thơm."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Tắm biển Bãi Sao - N2: Tham quan nhà tù Phú Quốc và nhà thùng nước mắm."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Bắc đảo - N2: Nam đảo (cano 4 đảo) - N3: Mua sắm tại chợ đêm và về."
+      }
+    ]
+  },
+  {
+    "name": "Nha Trang",
+    "province": "Khánh Hòa",
+    "hangTrang": "Đồ bơi, kem chống nắng, mũ rộng vành.",
+    "tietKiem": "Ăn hải sản tại các quán bình dân dọc đường Tháp Bà.",
+    "anToan": "Cẩn thận túi xách khi dạo biển vào buổi tối.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng đi tour đảo, chiều tham quan Tháp Bà Ponagar."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Vui chơi tại Vinpearl Land - N2: Tắm bùn khoáng nóng thư giãn."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Tour đảo - N2: Nội thành Nha Trang - N3: Mua sắm đặc sản nem nướng, hải sản khô và về."
+      }
+    ]
+  },
+  {
+    "name": "Cát Bà",
+    "province": "Hải Phòng",
+    "hangTrang": "Đồ bơi, giày đi bộ, kem chống nắng.",
+    "tietKiem": "Đi tàu cao tốc từ bến phà Gót thay vì đi cáp treo nếu muốn tiết kiệm.",
+    "anToan": "Cẩn thận khi chèo kayak gần các tàu du lịch lớn.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Sáng tắm biển Cát Cò, chiều thăm Vịnh Lan Hạ."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Vườn quốc gia Cát Bà - N2: Thăm làng chài Việt Hải."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Trung tâm Cát Bà - N2: Đảo Khỉ - N3: Pháo đài Thần Công và về."
+      }
+    ]
+  },
+  {
+    "name": "Cô Tô",
+    "province": "Quảng Ninh",
+    "hangTrang": "Đồ bơi, sạc dự phòng, đèn pin.",
+    "tietKiem": "Thuê xe máy để tự do khám phá các bãi tắm xa trung tâm.",
+    "anToan": "Theo dõi dự báo thời tiết để tránh kẹt lại đảo khi có bão.",
+    "itinerary": [
+      {
+        "duration": "1 Ngày",
+        "content": "Dạo bãi đá Cầu Mỵ và tắm biển Vàn Chảy."
+      },
+      {
+        "duration": "2 Ngày 1 Đêm",
+        "content": "N1: Biển Hồng Vàn - N2: Thăm ngọn hải đăng Cô Tô."
+      },
+      {
+        "duration": "3 Ngày 2 Đêm",
+        "content": "N1: Đảo Cô Tô lớn - N2: Đi cano sang Cô Tô con - N3: Mua sắm hải sản và về."
+      }
+    ]
+  }
+]

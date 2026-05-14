@@ -5,3 +5,5 @@ backend/node_modules/
 backend/uploads/
 database.sqlite
 backend/database.sqlite
+*.cjs
+*.log

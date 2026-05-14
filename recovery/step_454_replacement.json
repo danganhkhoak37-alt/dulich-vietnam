@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Filter duplicate news titles in BaoMoi scraper\"",
+  "EndLine": "468",
+  "Instruction": "\"Add a Set to track and skip duplicate news titles during scraping. Increased limit to 25 to account for filtered duplicates.\"",
+  "ReplacementContent": "\"    const newsItems = [];\\n    const seenTitles = new Set();\\n\\n    $('div[class*=\\\"bm-card\\\"]').each((i, el) => {\\n      if (newsItems.length >= 20) return; // Limit to 20 unique items\\n      const title = $(el).find('h3 a').text().trim();\\n      const r\n<truncated 885 bytes>",
+  "StartLine": "447",
+  "TargetContent": "\"    const newsItems = [];\\n\\n    $('div[class*=\\\"bm-card\\\"]').each((i, el) => {\\n      if (i >= 15) return; // Limit to 15 items\\n      const title = $(el).find('h3 a').text().trim();\\n      const relativeLink = $(el).find('h3 a').attr('href');\\n      con\n<truncated 669 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\backend\\\\server.js\""
+}

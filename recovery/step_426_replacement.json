@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Add onClick handler to news list items\"",
+  "EndLine": "265",
+  "Instruction": "\"Add onClick handler to the news list item div to open BaoMoi link.\"",
+  "ReplacementContent": "\"                    <motion.div key={news.id}\\n                      initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}\\n                      viewport={{ once: true }} transition={{ delay: i * 0.07, duration: 0.5 }}\\n                    \n<truncated 307 bytes>",
+  "StartLine": "233",
+  "TargetContent": "\"                    <motion.div key={news.id}\\n                      initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}\\n                      viewport={{ once: true }} transition={{ delay: i * 0.07, duration: 0.5 }}\\n                    \n<truncated 241 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\News.jsx\""
+}

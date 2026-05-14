@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: wanderly-vietnam
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production

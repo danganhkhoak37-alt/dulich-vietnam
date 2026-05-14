@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Connect UI to real news click and hero news data\"",
+  "EndLine": "196",
+  "Instruction": "\"Use heroNews state and add onClick handler to hero news card.\"",
+  "ReplacementContent": "\"            {/* HERO NEWS */}\\n            <motion.div initial=\\\"hidden\\\" whileInView=\\\"visible\\\" viewport={{ once: true }} variants={fadeUp}\\n              onClick={() => handleNewsClick(heroNews.link)}\\n              className=\\\"group relative rounded-[\n<truncated 1684 bytes>",
+  "StartLine": "175",
+  "TargetContent": "\"            {/* HERO NEWS */}\\n            <motion.div initial=\\\"hidden\\\" whileInView=\\\"visible\\\" viewport={{ once: true }} variants={fadeUp}\\n              className=\\\"group relative rounded-[2rem] overflow-hidden h-[420px] cursor-pointer border border-w\n<truncated 1496 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\News.jsx\""
+}

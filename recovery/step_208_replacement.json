@@ -1,0 +1,6 @@
+{
+  "Description": "\"Fixing hero background and placeholder images in Suggestions.jsx\"",
+  "Instruction": "\"Update the hero banner background to use the new vietnam_hero_bg.png. Also fix the default image fallback for Wikipedia and MOCK locations to be appropriate.\"",
+  "ReplacementChunks": "[{\"AllowMultiple\":false,\"EndLine\":32,\"ReplacementContent\":\"const MOCK_GPS_RESULTS = [\\n  { id: 1, name: 'Hội An', location: 'Quảng Nam', distance: 30, travel_time: 45, tag: 'Văn Hoá', best_month_start: 2, best_month_end: 4, image_url: 'https://hoianc\n<truncated 4406 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\Suggestions.jsx\""
+}

@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Add a 350km distance filter to suggestions\"",
+  "EndLine": "191",
+  "Instruction": "\"Filter the results to only include locations under 350km\"",
+  "ReplacementContent": "\"      // Sắp xếp: Ưu tiên đang vào mùa đẹp (1 lên trước 0), sau đó mới xét đến khoảng cách\\n      computedResults.sort((a, b) => {\\n        if (b.isBestMonth !== a.isBestMonth) {\\n          return b.isBestMonth - a.isBestMonth;\\\n<truncated 312 bytes>",
+  "StartLine": "183",
+  "TargetContent": "\"      // Sắp xếp: Ưu tiên đang vào mùa đẹp (1 lên trước 0), sau đó mới xét đến khoảng cách\\n      computedResults.sort((a, b) => {\\n        if (b.isBestMonth !== a.isBestMonth) {\\n          return b.isBestMonth - a.isBestMonth;\\\n<truncated 121 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\Suggestions.jsx\""
+}

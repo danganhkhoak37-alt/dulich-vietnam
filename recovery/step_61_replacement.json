@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Modify to write to new_dest.txt\"",
+  "EndLine": "141",
+  "Instruction": "\"Write to new_dest.txt instead of modifying server.js\"",
+  "ReplacementContent": "\"const newArrayStr = 'const DESTINATIONS = ' + JSON.stringify(oldDestinations, null, 2).replace(/\\\"([^\\\"]+)\\\":/g, '$1:') + ';';\\nfs.writeFileSync('new_dest.txt', newArrayStr);\\nconsole.log('generated new_dest.txt');\"",
+  "StartLine": "129",
+  "TargetContent": "\"const content = fs.readFileSync('server.js', 'utf8');\\nconst lines = content.split(/\\\\r?\\\\n/);\\nconst startIdx = lines.findIndex(l => l.startsWith('const DESTINATIONS = ['));\\nconst endIdx = lines.findIndex((l, i) => i > startIdx && l.startsWith('];'));\\n\n<truncated 500 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\backend\\\\update_destinations.js\""
+}

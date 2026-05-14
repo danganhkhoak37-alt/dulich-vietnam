@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Add BaoMoi news scraper API\"",
+  "EndLine": "435",
+  "Instruction": "\"Add /api/news/baomoi endpoint to scrape travel news from BaoMoi.com\"",
+  "ReplacementContent": "\"app.get('/api/news/featured', async (req, res) => {\\n  try {\\n    res.json(await db.get('SELECT * FROM news WHERE is_featured=1 ORDER BY published_at DESC LIMIT 1'));\\n  } catch (err) { res.status(500).json({ error: err.message }); }\\n});\\n\\nconst axios =\n<truncated 1541 bytes>",
+  "StartLine": "430",
+  "TargetContent": "\"app.get('/api/news/featured', async (req, res) => {\\n  try {\\n    res.json(await db.get('SELECT * FROM news WHERE is_featured=1 ORDER BY published_at DESC LIMIT 1'));\\n  } catch (err) { res.status(500).json({ error: err.message }); }\\n});\"",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\backend\\\\server.js\""
+}

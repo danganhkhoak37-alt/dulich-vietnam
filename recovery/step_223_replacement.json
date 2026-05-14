@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Fixing fetch_wiki.js to add delay and User-Agent\"",
+  "EndLine": "64",
+  "Instruction": "\"Add a sleep function, User-Agent header, and delay loop.\"",
+  "ReplacementContent": "\"  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));\\n  const headers = { 'User-Agent': 'WanderlyVN/1.0 (test@example.com)' };\\n\\n  console.log(`Bắt đầu tìm ảnh cho ${names.length} địa điểm...`);\\n\\n  for (let i = 0; i < \n<truncated 2203 bytes>",
+  "StartLine": "19",
+  "TargetContent": "\"  console.log(`Bắt đầu tìm ảnh cho ${names.length} địa điểm...`);\\n\\n  for (let i = 0; i < names.length; i++) {\\n    const name = names[i];\\n    try {\\n      // Tìm trang Wikipedia tiếng Việt\\n      const res = await fetch(`https://vi.w\n<truncated 2127 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\backend\\\\fetch_wiki.js\""
+}

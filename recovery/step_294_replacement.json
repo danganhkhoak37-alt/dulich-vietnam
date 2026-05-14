@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Fix frontend sorting to prioritize best season first\"",
+  "EndLine": "178",
+  "Instruction": "\"Replace distance-only sorting with season-first sorting\"",
+  "ReplacementContent": "\"      // Tính isBestMonth cho toàn bộ kết quả để đồng bộ logic sắp xếp\\n      const month = parseInt(selectedMonth);\\n      const computedResults = combinedResults.map(item => {\\n        const start = item.best_month_start || 1;\\n     \n<truncated 632 bytes>",
+  "StartLine": "175",
+  "TargetContent": "\"      // Sắp xếp lại toàn bộ theo khoảng cách\\n      combinedResults.sort((a, b) => a.distance - b.distance);\\n\\n      setSearchResults(combinedResults);\"",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\Suggestions.jsx\""
+}

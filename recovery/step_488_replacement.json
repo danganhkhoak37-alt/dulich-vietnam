@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Refetch VnExpress news when category changes\"",
+  "EndLine": "130",
+  "Instruction": "\"Update useEffect to fetch from /api/news/vnexpress and include the activeCategory as a query parameter. Ensure it refetches when activeCategory changes.\"",
+  "ReplacementContent": "\"  React.useEffect(() => {\\n    const fetchNews = async () => {\\n      setLoading(true);\\n      try {\\n        const response = await fetch(`http://localhost:5000/api/news/vnexpress?category=${activeCategory}`);\\n        const data = await response.json();\n<truncated 361 bytes>",
+  "StartLine": "108",
+  "TargetContent": "\"  React.useEffect(() => {\\n    const fetchNews = async () => {\\n      try {\\n        const response = await fetch('http://localhost:5000/api/news/baomoi');\\n        const data = await response.json();\\n        if (data && data.length > 0) {\\n          set\n<truncated 211 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\News.jsx\""
+}

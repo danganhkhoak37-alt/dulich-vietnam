@@ -68,9 +68,9 @@ function Footer() {
           </ul>
         </div>
       </div>
-      
+
       <div className="max-w-[1200px] mx-auto px-6 mt-16 pt-8 border-t border-gray-800 text-center text-xs opacity-50 flex flex-col md:flex-row justify-between items-center gap-4">
-        <p>© 2026 WanderlyVietNam. All rights reserved.</p>
+        <p>Tác giả: Đặng Anh Khoa <br/>Ngô Quang Huy <br/>Trần Hoàng <br/>Tào Trần Duy Phúc</p>
         <div className="space-x-6">
           <a href="#" className="hover:text-white transition-colors">Điều khoản dịch vụ</a>
           <a href="#" className="hover:text-white transition-colors">Chính sách bảo mật</a>

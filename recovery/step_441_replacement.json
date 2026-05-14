@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Implement featured news slider with auto-slide effect\"",
+  "EndLine": "235",
+  "Instruction": "\"Replace the static hero news with a dynamic Featured News Slider using Framer Motion. Add auto-sliding logic and navigation dots.\"",
+  "ReplacementContent": "\"            {/* FEATURED NEWS SLIDER */}\\n            <div className=\\\"relative group rounded-[2rem] overflow-hidden h-[420px] border border-white/5 hover:border-[#D4AF37]/30 transition-all duration-500\\\">\\n              <AnimatePresence mode=\\\"wait\\\">\\n \n<truncated 2967 bytes>",
+  "StartLine": "201",
+  "TargetContent": "\"            {/* HERO NEWS */}\\n            <motion.div initial=\\\"hidden\\\" whileInView=\\\"visible\\\" viewport={{ once: true }} variants={fadeUp}\\n              onClick={() => handleNewsClick(heroNews.link)}\\n              className=\\\"group relative rounded-[\n<truncated 1684 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\News.jsx\""
+}

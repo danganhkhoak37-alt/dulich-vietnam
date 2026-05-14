@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Add currentSlide state and auto-slide logic to News page\"",
+  "EndLine": "115",
+  "Instruction": "\"Add currentSlide state and a useEffect hook to automatically cycle through the top 5 news items every 5 seconds.\"",
+  "ReplacementContent": "\"  const [activeCategory, setActiveCategory] = useState('all');\\n  const [activeProvince, setActiveProvince] = useState('Tất cả tỉnh thành');\\n  const [searchQuery, setSearchQuery] = useState('');\\n  const [baomoiNews, setBaomoiNews] = useState([]);\n<truncated 870 bytes>",
+  "StartLine": "101",
+  "TargetContent": "\"  const [activeCategory, setActiveCategory] = useState('all');\\n  const [activeProvince, setActiveProvince] = useState('Tất cả tỉnh thành');\\n  const [searchQuery, setSearchQuery] = useState('');\\n  const [baomoiNews, setBaomoiNews] = useState([]);\n<truncated 662 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\News.jsx\""
+}

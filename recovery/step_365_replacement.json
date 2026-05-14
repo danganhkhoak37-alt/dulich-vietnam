@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Update search results title dynamically\"",
+  "EndLine": "352",
+  "Instruction": "\"Change the title to use activeCategory\"",
+  "ReplacementContent": "\"          <div className=\\\"bg-[#112418] p-10 rounded-[2rem] border border-white/10\\\">\\n            <h3 className=\\\"text-4xl font-heading font-bold text-[#F5F2EB] mb-10 text-center\\\">\\n              {activeCategory ? `Gợi Ý Theo Mục: ${activeCategory}\n<truncated 121 bytes>",
+  "StartLine": "351",
+  "TargetContent": "\"          <div className=\\\"bg-[#112418] p-10 rounded-[2rem] border border-white/10\\\">\\n            <h3 className=\\\"text-4xl font-heading font-bold text-[#F5F2EB] mb-10 text-center\\\">Lộ Trình Đề Xuất <span className=\\\"text-[#D4AF37] italic font-lig\n<truncated 27 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\Suggestions.jsx\""
+}

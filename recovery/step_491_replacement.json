@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Simplify frontend filtering for real-time news\"",
+  "EndLine": "149",
+  "Instruction": "\"Simplify the filtered news list logic since the backend already provides filtered data. Keep search functionality.\"",
+  "ReplacementContent": "\"  const filtered = (baomoiNews.length > 0 ? baomoiNews.slice(5) : []).filter((n) => {\\n    return n.title.toLowerCase().includes(searchQuery.toLowerCase()) || \\n           (n.excerpt && n.excerpt.toLowerCase().includes(searchQuery.toLowerCase()));\\n  });\"",
+  "StartLine": "145",
+  "TargetContent": "\"  const filtered = (baomoiNews.length > 0 ? baomoiNews.slice(5) : NEWS_LIST).filter((n) => {\\n    const matchCat = activeCategory === 'all' || (n.tags && n.tags.includes(activeCategory)) || n.category === 'BaoMoi Du Lịch';\\n    const matchSearch = n.tit\n<truncated 98 bytes>",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\News.jsx\""
+}

@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Clear active category on manual search\"",
+  "EndLine": "141",
+  "Instruction": "\"Clear activeCategory inside handleManualSearch\"",
+  "ReplacementContent": "\"    // Nếu isAutoOrEvent là một object (React Event), ta coi isAuto = false\\n    const isAuto = typeof isAutoOrEvent === 'boolean' ? isAutoOrEvent : false;\\n    \\n    if (!isAuto && !startLocation) return;\\n    setLoading(true);\\n    setActiveCategor\n<truncated 20 bytes>",
+  "StartLine": "133",
+  "TargetContent": "\"    // Nếu isAutoOrEvent là một object (React Event), ta coi isAuto = false\\n    const isAuto = typeof isAutoOrEvent === 'boolean' ? isAutoOrEvent : false;\\n    \\n    if (!isAuto && !startLocation) return;\\n    setLoading(true);\\n    try {\"",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\pages\\\\Suggestions.jsx\""
+}

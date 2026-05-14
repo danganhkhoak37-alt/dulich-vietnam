@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Fix wrap around season logic in LocationCard\"",
+  "EndLine": "6",
+  "Instruction": "\"Handle wrap around seasons (like 12 to 2) properly\"",
+  "ReplacementContent": "\"const LocationCard = ({ loc, month }) => {\\n  const isBestSeason = loc.best_month_start <= loc.best_month_end \\n    ? (month >= loc.best_month_start && month <= loc.best_month_end)\\n    : (month >= loc.best_month_start || month <= loc.best_month_end);\\n\\n\n<truncated 71 bytes>",
+  "StartLine": "3",
+  "TargetContent": "\"const LocationCard = ({ loc, month }) => {\\n  const isBestSeason = month >= loc.best_month_start && month <= loc.best_month_end;\\n\\n  // Ước tính thời gian di chuyển (dựa trên khoảng cách)\"",
+  "TargetFile": "\"d:\\\\BestWeb\\\\BestWeb\\\\src\\\\components\\\\LocationCard.jsx\""
+}
