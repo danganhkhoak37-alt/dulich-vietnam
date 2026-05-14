@@ -440,8 +440,14 @@ function Community() {
         setSelectedFile(null);
         setPreviewUrl('');
         fetchPosts(); 
+      } else {
+        alert('Lỗi đăng bài: ' + (data.message || 'Không xác định'));
       }
-    } catch (err) { console.error(err); } finally { setLoading(false); }
+    } catch (err) { 
+      console.error('Post Error:', err);
+      alert('Không thể kết nối đến server để đăng bài.');
+    } finally { setLoading(false); }
+
   };
 
   return (
