@@ -174,7 +174,7 @@ function PostCard({ post, onRefresh }) {
       <div className="p-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
-            src={post.avatar_url || 'https://i.pravatar.cc/150'}
+            src={post.avatar_url?.startsWith('/') ? `${API_URL}${post.avatar_url}` : (post.avatar_url || 'https://i.pravatar.cc/150')}
             alt="avatar"
             className="w-11 h-11 rounded-full object-cover border-2 border-[#D4AF37]/30"
             onError={(e) => { e.target.src = 'https://i.pravatar.cc/150'; }}
@@ -284,7 +284,7 @@ function PostCard({ post, onRefresh }) {
       {post.image_url && !isEditing && (
         <div className="w-full aspect-[4/3] overflow-hidden bg-[#112418] relative">
           <img
-            src={imgError ? FALLBACK : post.image_url}
+            src={imgError ? FALLBACK : (post.image_url?.startsWith('/') ? `${API_URL}${post.image_url}` : post.image_url)}
             alt="post"
             className="w-full h-full object-cover"
             onError={() => setImgError(true)}

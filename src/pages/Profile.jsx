@@ -151,7 +151,7 @@ function Profile() {
         {/* Cover Photo */}
         <div className="h-56 md:h-72 overflow-hidden relative group">
           <img
-            src={user.cover_url || DEFAULT_COVER}
+            src={user.cover_url?.startsWith('/') ? `${API_URL}${user.cover_url}` : (user.cover_url || DEFAULT_COVER)}
             alt="cover"
             className="w-full h-full object-cover"
             onError={(e) => { e.target.src = DEFAULT_COVER; }}
@@ -172,7 +172,7 @@ function Profile() {
         {/* Avatar với nút upload */}
             <div className="relative flex-shrink-0 group">
               <img
-                src={user.avatar_url || 'https://i.pravatar.cc/150'}
+                src={user.avatar_url?.startsWith('/') ? `${API_URL}${user.avatar_url}` : (user.avatar_url || 'https://i.pravatar.cc/150')}
                 alt="avatar"
                 className="w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-[#0A241A] object-cover shadow-2xl"
                 onError={(e) => { e.target.src = 'https://i.pravatar.cc/150'; }}
@@ -344,7 +344,7 @@ function Profile() {
                     <div key={post.id} className="bg-[#0D2D1F] rounded-2xl p-5 border border-white/5 hover:border-white/10 transition-all">
                       {post.image_url && (
                         <div className="h-48 rounded-xl overflow-hidden mb-4">
-                          <img src={post.image_url} alt="post" className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; }} />
+                          <img src={post.image_url?.startsWith('/') ? `${API_URL}${post.image_url}` : post.image_url} alt="post" className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; }} />
                         </div>
                       )}
                       <p className="text-white/80 text-sm leading-relaxed">{post.content}</p>
@@ -370,7 +370,7 @@ function Profile() {
                     <div key={post.id} className="bg-[#0D2D1F] rounded-2xl p-5 border border-white/5 flex gap-4">
                       {post.image_url && (
                         <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
-                          <img src={post.image_url} alt="post" className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; }} />
+                          <img src={post.image_url?.startsWith('/') ? `${API_URL}${post.image_url}` : post.image_url} alt="post" className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; }} />
                         </div>
                       )}
                       <div>

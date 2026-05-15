@@ -141,7 +141,7 @@ function News() {
                       onClick={() => window.open(featuredNews[heroIndex].link, '_blank')}
                     >
                       <img
-                        src={featuredNews[heroIndex].image_url}
+                        src={featuredNews[heroIndex].image_url?.startsWith('/') ? `${API_URL}${featuredNews[heroIndex].image_url}` : featuredNews[heroIndex].image_url}
                         alt="featured"
                         className="w-full h-full object-cover"
                       />
@@ -188,7 +188,7 @@ function News() {
                       className="group flex gap-5 bg-white/5 p-4 rounded-[1.5rem] border border-white/5 hover:border-[#D4AF37]/30 transition-all cursor-pointer"
                     >
                       <div className="w-32 md:w-48 h-32 flex-shrink-0 overflow-hidden rounded-xl">
-                        <img src={n.image_url} alt="news" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        <img src={n.image_url?.startsWith('/') ? `${API_URL}${n.image_url}` : n.image_url} alt="news" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                       </div>
                       <div className="flex-1 flex flex-col justify-center">
                         <div className="flex items-center gap-3 mb-2">

@@ -196,8 +196,8 @@ async function initDB() {
   if (nc.c === 0) {
     const news = [
       ['Đà Nẵng Chính Thức Khai Mạc Lễ Hội Pháo Hoa Quốc Tế 2026','Lễ hội pháo hoa lớn nhất Đông Nam Á với 8 quốc gia tham gia, kéo dài suốt tháng 6.','sukien','2026-05-08','https://luxurytravel.vn/wp-content/uploads/2023/05/Da-Nang-1.jpg','3 phút',1],
-      ['Vietnam Airlines Mở Đường Bay Thẳng Đà Nẵng – Tokyo','Chuyến bay thẳng đầu tiên từ Đà Nẵng đến Tokyo từ tháng 7/2026.','hangkhong','2026-05-07','https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800','2 phút',0],
-      ['Hàn Quốc Miễn Visa 30 Ngày Cho Công Dân Việt Nam','Hiệu lực ngay từ 15/5/2026 — tin vui cho du khách Việt.','visa','2026-05-06','https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=800','3 phút',0],
+      ['Khai Trương Tuyến Xe Điện Du Lịch Quanh Bờ Hồ Hoàn Kiếm','Tuyến xe điện mới giúp du khách dễ dàng tham quan các di tích lịch sử quanh hồ.','sukien','2026-05-07','https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=800','2 phút',0],
+      ['Sapa Đón Lượng Khách Kỷ Lục Dịp Nghỉ Lễ 30/4','Hơn 100.000 lượt khách đã đến với thị trấn mờ sương trong 4 ngày nghỉ lễ.','diem-den','2026-05-06','https://media.vietravel.com/images/Content/dia-diem-du-lich-sapa-1.png','3 phút',0],
       ['Khu Du Lịch Phong Nha 5 Sao Đầu Tiên Chính Thức Mở Cửa','Resort nghỉ dưỡng cao cấp nằm ngay cạnh di sản UNESCO Phong Nha – Kẻ Bàng.','diem-den','2026-05-05','https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?q=80&w=800','https://i.pinimg.com/736x/8e/34/1f/8e341f467483e623f689803cd4eade33.jpg',0],
       ['Bamboo Airways Giảm 40% Vé Nội Địa Dịp Hè 2026','500.000 vé giá rẻ trên toàn bộ đường bay nội địa, đặt trước đến 31/5.','hangkhong','2026-05-04','https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=800','2 phút',0],
       ['Festival Huế 2026: 15 Đêm Văn Hoá Đặc Sắc','Chương trình nghệ thuật ánh sáng và lễ rước đèn lớn nhất lịch sử phố cổ.','sukien','2026-05-03','https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=800','https://i1-e.pinimg.com/736x/f3/42/23/f34223ed6dfb6b61b306696f08333475.jpg',0],
@@ -287,7 +287,7 @@ app.put('/api/profile/:id', async (req, res) => {
 app.post('/api/upload/avatar/:id', upload.single('avatar'), async (req, res) => {
   if (!req.file) return res.status(400).json({ status: 'error', message: 'Không có file được tải lên' });
   try {
-    const avatarUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+    const avatarUrl = `/uploads/${req.file.filename}`;
     await db.run('UPDATE users SET avatar_url=? WHERE id=?', [avatarUrl, req.params.id]);
     res.json({ status: 'success', avatar_url: avatarUrl });
   } catch (err) {
@@ -299,7 +299,7 @@ app.post('/api/upload/avatar/:id', upload.single('avatar'), async (req, res) => 
 app.post('/api/upload/cover/:id', upload.single('cover'), async (req, res) => {
   if (!req.file) return res.status(400).json({ status: 'error', message: 'Không có file được tải lên' });
   try {
-    const coverUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+    const coverUrl = `/uploads/${req.file.filename}`;
     await db.run('UPDATE users SET cover_url=? WHERE id=?', [coverUrl, req.params.id]);
     res.json({ status: 'success', cover_url: coverUrl });
   } catch (err) {
@@ -311,7 +311,7 @@ app.post('/api/upload/cover/:id', upload.single('cover'), async (req, res) => {
 app.post('/api/upload/post', upload.single('post_image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ status: 'error', message: 'Không có file được tải lên' });
   try {
-    const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+    const imageUrl = `/uploads/${req.file.filename}`;
     res.json({ status: 'success', image_url: imageUrl });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
@@ -493,6 +493,19 @@ app.get('/api/news/vnexpress', async (req, res) => {
   else if (category === 'tu-van') url = 'https://vnexpress.net/du-lich/tu-van';
 
   try {
+    // 1. Lấy tin tức từ Database trước (Tin tức trong nước đã seed)
+    let dbNews = [];
+    try {
+      let q = 'SELECT * FROM news WHERE 1=1';
+      const params = [];
+      if (category && category !== 'all') { q += ' AND category=?'; params.push(category); }
+      q += ' ORDER BY published_at DESC LIMIT 10';
+      dbNews = await db.all(q, params);
+    } catch (dbErr) {
+      console.error('DB News Fetch Error:', dbErr);
+    }
+
+    // 2. Scrape từ VnExpress
     const response = await axios.get(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
@@ -502,8 +515,14 @@ app.get('/api/news/vnexpress', async (req, res) => {
     const newsItems = [];
     const seenTitles = new Set();
     
-    // Keywords to exclude international news
-    const internationalKeywords = ['nhật bản', 'hàn quốc', 'trung quốc', 'thái lan', 'singapore', 'mỹ', 'châu âu', 'bali', 'tokyo', 'seoul', 'bangkok', 'nước ngoài', 'quốc tế', 'visa hàn', 'visa nhật', 'pháp', 'đức', 'anh', 'nga', 'úc', 'australia', 'campuchia', 'lào', 'malaysia', 'indonesia', 'philippines', 'đài loan', 'hong kong', 'châu á'];
+    // Keywords to exclude international news (Very Aggressive)
+    const internationalKeywords = [
+      'nhật bản', 'hàn quốc', 'trung quốc', 'thái lan', 'singapore', 'mỹ', 'châu âu', 'bali', 'tokyo', 'seoul', 'bangkok', 
+      'nước ngoài', 'quốc tế', 'visa', 'hộ chiếu', 'pháp', 'đức', 'anh', 'nga', 'úc', 'australia', 'campuchia', 'lào', 
+      'malaysia', 'indonesia', 'philippines', 'đài loan', 'hong kong', 'châu á', 'thế giới', 'toàn cầu', 'ngoại quốc', 
+      'milan', 'everest', 'nepal', 'world cup', 'côn minh', 'argentina', 'hantavirus', 'ý', 'italia', 'tây ban nha', 
+      'bồ đào nha', 'ấn độ', 'thụy sĩ', 'thụy điển', 'na uy', 'đan mạch', 'phần lan', 'brazil', 'mexico', 'canada', 'peru', 'bolivia', '?n d?', '?n d?', 'india'
+    ];
 
     $('article.item-news').each((i, el) => {
       if (newsItems.length >= 25) return;
@@ -514,14 +533,17 @@ app.get('/api/news/vnexpress', async (req, res) => {
       let image = $(el).find('div.thumb-art img').attr('data-src') || $(el).find('div.thumb-art img').attr('src');
       const categoryLabel = $(el).find('span.location-stamp').text().trim() || 'Trong nước';
       
-      // Domestic check
+      // Strict Domestic check
       const isInternational = internationalKeywords.some(kw => 
         title.toLowerCase().includes(kw) || 
         excerpt.toLowerCase().includes(kw) || 
         categoryLabel.toLowerCase().includes(kw)
       );
 
-      if (title && link && !seenTitles.has(title) && !isInternational) {
+      // If categoryLabel is "Châu Á", "Châu Âu", "Châu Mỹ", etc. it's international
+      const isExplicitlyInternational = ['châu á', 'châu âu', 'châu mỹ', 'châu úc', 'nước ngoài', 'quốc tế'].includes(categoryLabel.toLowerCase());
+
+      if (title && link && !seenTitles.has(title) && !isInternational && !isExplicitlyInternational) {
         seenTitles.add(title);
         newsItems.push({
           id: `vn-${newsItems.length}`,
@@ -536,7 +558,19 @@ app.get('/api/news/vnexpress', async (req, res) => {
       }
     });
 
-    res.json(newsItems);
+    // 3. Gộp Database News và Scraped News
+    const formattedDbNews = dbNews.map(n => ({
+      id: `db-${n.id}`,
+      title: n.title,
+      link: '#', 
+      excerpt: n.description,
+      image_url: n.image_url,
+      time_ago: n.published_at,
+      category: n.category === 'sukien' ? 'Sự kiện' : (n.category === 'diem-den' ? 'Điểm đến' : 'Tin tức'),
+      read_time: n.read_time
+    }));
+
+    res.json([...formattedDbNews, ...newsItems]);
   } catch (err) {
     console.error('VnExpress Scrape Error:', err);
     res.status(500).json({ status: 'error', message: 'Không thể tải tin tức từ VnExpress' });
