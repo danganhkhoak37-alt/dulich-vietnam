@@ -8,6 +8,26 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+// Load environment variables from .env file manually if exists
+try {
+  const envPath = path.join(__dirname, '..', '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf-8');
+    envContent.split(/\r?\n/).forEach(line => {
+      const parts = line.split('=');
+      if (parts.length >= 2) {
+        const key = parts[0].trim();
+        const value = parts.slice(1).join('=').trim();
+        if (key && !process.env[key]) {
+          process.env[key] = value.replace(/^['"]|['"]$/g, '');
+        }
+      }
+    });
+  }
+} catch (e) {
+  console.error('Không thể đọc file .env:', e.message);
+}
+
 const app = express();
 const JWT_SECRET = 'explorevn_secret_2026';
 
@@ -142,11 +162,17 @@ async function initDB() {
   `);
 
   // OAuth columns (migrate safely — idempotent)
-  const addCol = async (col, def) => { try { await db.run(`ALTER TABLE users ADD COLUMN ${col} ${def}`); } catch {} };
-  await addCol('google_id', 'TEXT');
-  await addCol('facebook_id', 'TEXT');
-  await addCol('email', 'TEXT');
-  await addCol('oauth_provider', 'TEXT DEFAULT "local"');
+  const addCol = async (table, col, def) => { try { await db.run(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`); } catch {} };
+  await addCol('users', 'google_id', 'TEXT');
+  await addCol('users', 'facebook_id', 'TEXT');
+  await addCol('users', 'email', 'TEXT');
+  await addCol('users', 'oauth_provider', 'TEXT DEFAULT "local"');
+
+  // News columns migration
+  await addCol('news', 'read_time', "TEXT DEFAULT '3 phút'");
+  await addCol('news', 'is_featured', "INTEGER DEFAULT 0");
+  await addCol('news', 'image_url', "TEXT");
+
 
   // Seed users
   const uc = await db.get('SELECT COUNT(*) as c FROM users');
@@ -1937,6 +1963,122 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return Math.round(R * c);
 }
+
+// ============================================================
+// AI / RAG APIs (Ollama)
+// ============================================================
+
+const ragEngine = require('./ragEngine');
+
+// Build RAG index on startup (non-blocking)
+(async () => {
+  console.log('\n🤖 Initializing AI RAG Engine...');
+  try {
+    await ragEngine.buildIndex();
+  } catch (err) {
+    console.error('❌ RAG Engine init failed:', err.message);
+  }
+})();
+
+// Check AI/Groq status
+app.get('/api/ai/status', async (req, res) => {
+  try {
+    const groqStatus = await ragEngine.checkGroq();
+    res.json({
+      status: groqStatus.online ? 'online' : 'offline',
+      ragReady: ragEngine.isReady,
+      ragDocuments: ragEngine.vectorStore?.size || 0,
+      models: groqStatus.models?.map(m => m.id || m.name) || [],
+      message: groqStatus.online
+        ? 'WanderlyAI sẵn sàng phục vụ qua Groq API! 🌟'
+        : 'AI đang offline. Vui lòng cấu hình biến môi trường GROQ_API_KEY trong file .env hoặc trên Render Dashboard.'
+    });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Chat with AI (non-streaming)
+app.post('/api/ai/chat', async (req, res) => {
+  const { message, history } = req.body;
+  if (!message) return res.status(400).json({ status: 'error', message: 'Thiếu nội dung tin nhắn' });
+
+  try {
+    const groqStatus = await ragEngine.checkGroq();
+    if (!groqStatus.online) {
+      return res.status(503).json({
+        status: 'offline',
+        message: 'AI đang offline. Vui lòng kiểm tra cấu hình GROQ_API_KEY trong file .env hoặc trên Render Dashboard.'
+      });
+    }
+
+    const result = await ragEngine.chat(message, history || []);
+    res.json({ status: 'success', reply: result.reply, sources: result.sources });
+  } catch (err) {
+    console.error('AI Chat Error:', err.message);
+    res.status(500).json({ status: 'error', message: 'AI gặp lỗi: ' + err.message });
+  }
+});
+
+// Chat with AI (streaming via SSE)
+app.post('/api/ai/chat-stream', async (req, res) => {
+  const { message, history } = req.body;
+  if (!message) return res.status(400).json({ status: 'error', message: 'Thiếu nội dung tin nhắn' });
+
+  try {
+    const groqStatus = await ragEngine.checkGroq();
+    if (!groqStatus.online) {
+      return res.status(503).json({
+        status: 'offline',
+        message: 'AI đang offline. Vui lòng kiểm tra cấu hình GROQ_API_KEY trong file .env hoặc trên Render Dashboard.'
+      });
+    }
+
+    // Set SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+
+    for await (const chunk of ragEngine.chatStream(message, history || [])) {
+      res.write(`data: ${chunk}\n\n`);
+    }
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (err) {
+    console.error('AI Stream Error:', err.message);
+    if (!res.headersSent) {
+      res.status(500).json({ status: 'error', message: err.message });
+    } else {
+      res.write(`data: ${JSON.stringify({ type: 'error', data: err.message })}\n\n`);
+      res.end();
+    }
+  }
+});
+
+// Ask AI about a specific location (for Guide page)
+app.post('/api/ai/guide-ask', async (req, res) => {
+  const { locationName, question } = req.body;
+  if (!locationName || !question) {
+    return res.status(400).json({ status: 'error', message: 'Thiếu tên địa danh hoặc câu hỏi' });
+  }
+
+  try {
+    const groqStatus = await ragEngine.checkGroq();
+    if (!groqStatus.online) {
+      return res.status(503).json({
+        status: 'offline',
+        message: 'AI đang offline. Vui lòng kiểm tra cấu hình GROQ_API_KEY trong file .env hoặc trên Render Dashboard.'
+      });
+    }
+
+    const result = await ragEngine.askAboutLocation(locationName, question);
+    res.json({ status: 'success', answer: result.reply, sources: result.sources });
+  } catch (err) {
+    console.error('AI Guide-Ask Error:', err.message);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
 
 // Serve frontend SPA cho mọi route không phải API (production)
 if (fs.existsSync(DIST_DIR)) {

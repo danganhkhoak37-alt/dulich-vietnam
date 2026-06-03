@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import AIChatbox from './components/AIChatbox';
 import Home from './pages/Home';
 import Suggestions from './pages/Suggestions';
 import Guide from './pages/Guide';
@@ -28,6 +29,7 @@ function App() {
         </main>
 
         <Footer />
+        <AIChatbox />
       </div>
     </Router>
   );

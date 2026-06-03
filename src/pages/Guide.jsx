@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import superGuideData from '../data/superGuideContent.json';
 import vnexpressGuides from '../data/vnexpressGuides.json';
+import API_URL from '../config/api';
 
 // ============================================================
 // CONSTANTS & UTILS
@@ -16,6 +17,11 @@ function Guide() {
   const [searchFocused, setSearchFocused] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(superGuideData[0]);
   const [checked, setChecked] = useState([]);
+  const [aiQuestion, setAiQuestion] = useState('');
+  const [aiAnswer, setAiAnswer] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSources, setAiSources] = useState([]);
+  const aiAnswerRef = useRef(null);
   
   const vnGuides = vnexpressGuides;
   const loadingGuides = false;
@@ -101,9 +107,52 @@ function Guide() {
   const handleSelectLocation = (loc) => {
     setSelectedLocation(loc);
     setSearchQuery('');
+    setAiAnswer('');
+    setAiQuestion('');
+    setAiSources([]);
     // Scroll to details
     const element = document.getElementById('itinerary-section');
     if (element) element.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // AI Ask Handler
+  const askAI = async (questionText) => {
+    const q = questionText || aiQuestion;
+    if (!q.trim() || aiLoading) return;
+    setAiLoading(true);
+    setAiAnswer('');
+    setAiSources([]);
+
+    try {
+      const res = await fetch(`${API_URL}/api/ai/guide-ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          locationName: selectedLocation.name,
+          question: q.trim()
+        })
+      });
+
+      if (res.status === 503) {
+        setAiAnswer('⚠️ AI đang offline. Vui lòng cấu hình biến môi trường GROQ_API_KEY trong file .env hoặc trên Render.');
+        return;
+      }
+
+      const data = await res.json();
+      if (data.status === 'success') {
+        setAiAnswer(data.answer);
+        setAiSources(data.sources || []);
+      } else {
+        setAiAnswer('Xin lỗi, mình gặp lỗi khi xử lý câu hỏi. Thử lại nhé!');
+      }
+    } catch (err) {
+      setAiAnswer('❌ Không thể kết nối AI. Vui lòng kiểm tra file .env hoặc cấu hình key Groq.');
+    } finally {
+      setAiLoading(false);
+      setTimeout(() => {
+        aiAnswerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 200);
+    }
   };
 
   return (
@@ -274,6 +323,99 @@ function Guide() {
                   {selectedLocation.itinerary.length === 0 && (
                     <p className="text-white/30 italic text-center py-10">Thông tin lịch trình đang được cập nhật...</p>
                   )}
+                </div>
+
+                {/* ===== AI ASK SECTION ===== */}
+                <div className="mt-12 p-6 rounded-2xl border border-[#D4AF37]/20 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.05) 0%, rgba(194,122,91,0.05) 100%)' }}>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/5 rounded-full blur-3xl -mr-16 -mt-16" />
+                  
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C27A5B 100%)' }}>
+                        <svg className="w-4.5 h-4.5 text-[#0A241A]" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-[#F5F2EB] font-bold text-sm">Hỏi AI về {selectedLocation.name}</p>
+                        <p className="text-white/30 text-[10px]">Powered by WanderlyAI</p>
+                      </div>
+                    </div>
+
+                    {/* Quick suggestions for this location */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {[
+                        `Ăn gì ở ${selectedLocation.name}?`,
+                        `Mẹo du lịch ${selectedLocation.name}`,
+                        `${selectedLocation.name} có gì vui?`,
+                      ].map((q, i) => (
+                        <button
+                          key={i}
+                          onClick={() => { setAiQuestion(q); askAI(q); }}
+                          disabled={aiLoading}
+                          className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/50 text-[10px] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/30 hover:text-[#D4AF37] transition-all disabled:opacity-40"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Input */}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={aiQuestion}
+                        onChange={e => setAiQuestion(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') askAI(); }}
+                        placeholder={`Hỏi bất cứ điều gì về ${selectedLocation.name}...`}
+                        disabled={aiLoading}
+                        className="flex-1 bg-white/[0.06] border border-white/10 rounded-xl px-4 py-3 text-[#F5F2EB] text-sm placeholder-white/25 outline-none focus:border-[#D4AF37]/50 transition-all disabled:opacity-40"
+                      />
+                      <button
+                        onClick={() => askAI()}
+                        disabled={!aiQuestion.trim() || aiLoading}
+                        className="px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-30"
+                        style={{
+                          background: aiQuestion.trim() && !aiLoading
+                            ? 'linear-gradient(135deg, #D4AF37 0%, #C27A5B 100%)'
+                            : 'rgba(255,255,255,0.06)',
+                          color: aiQuestion.trim() && !aiLoading ? '#0A241A' : 'rgba(255,255,255,0.3)'
+                        }}
+                      >
+                        {aiLoading ? (
+                          <div className="flex gap-1">
+                            <div className="ai-typing-dot w-1.5 h-1.5 rounded-full bg-current" style={{ animationDelay: '0ms' }} />
+                            <div className="ai-typing-dot w-1.5 h-1.5 rounded-full bg-current" style={{ animationDelay: '150ms' }} />
+                            <div className="ai-typing-dot w-1.5 h-1.5 rounded-full bg-current" style={{ animationDelay: '300ms' }} />
+                          </div>
+                        ) : 'Hỏi'}
+                      </button>
+                    </div>
+
+                    {/* AI Answer */}
+                    <AnimatePresence>
+                      {aiAnswer && (
+                        <motion.div
+                          ref={aiAnswerRef}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          className="mt-4 p-4 rounded-xl bg-white/[0.04] border border-white/[0.08]"
+                        >
+                          <p className="text-[#F5F2EB]/90 text-sm leading-relaxed whitespace-pre-wrap">{aiAnswer}</p>
+                          {aiSources.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-white/5 flex flex-wrap gap-1">
+                              {aiSources.map((s, i) => (
+                                <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#D4AF37]/10 text-[9px] text-[#D4AF37]">
+                                  📍 {s.name}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
 
                 <div className="mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">

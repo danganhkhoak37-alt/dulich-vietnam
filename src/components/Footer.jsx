@@ -9,20 +9,20 @@ function Footer() {
         {/* Cột 1: About */}
         <div className="space-y-6">
           <Link to="/" className="text-3xl font-heading font-black text-white flex items-center tracking-tight">
-            Wanderly<span className="text-gold">VietNam</span>
+            Wanderly<span className="text-gold ml-1">VietNam</span>
           </Link>
           <p className="text-sm leading-relaxed opacity-70">
             Khám phá vẻ đẹp tráng lệ của Việt Nam qua những góc nhìn chân thực và điện ảnh nhất. Chúng tôi mang đến trải nghiệm du lịch cao cấp.
           </p>
           <div className="flex space-x-4">
             <a href="#" className="w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center hover:bg-gold hover:border-gold hover:text-black transition-all">
-              <i className="fa-brands fa-facebook-f text-lg"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
             </a>
             <a href="#" className="w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center hover:bg-gold hover:border-gold hover:text-black transition-all">
-              <i className="fa-brands fa-instagram text-lg"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
             </a>
             <a href="#" className="w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center hover:bg-gold hover:border-gold hover:text-black transition-all">
-              <i className="fa-brands fa-twitter text-lg"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
             </a>
           </div>
         </div>
@@ -69,9 +69,9 @@ function Footer() {
         </div>
       </div>
 
-      <div className="max-w-[1200px] mx-auto px-6 mt-16 pt-8 border-t border-gray-800 text-center text-xs opacity-50 flex flex-col md:flex-row justify-between items-center gap-4">
-        <p>Tác giả: Đặng Anh Khoa <br/>Ngô Quang Huy <br/>Trần Hoàng <br/>Tào Trần Duy Phúc</p>
-        <div className="space-x-6">
+      <div className="max-w-[1200px] mx-auto px-6 mt-16 pt-8 border-t border-gray-800 text-xs opacity-50 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p className="text-center md:text-left">Tác giả: Đặng Anh Khoa <br/>Ngô Quang Huy <br/>Trần Hoàng <br/>Tào Trần Duy Phúc</p>
+        <div className="space-x-6 text-center md:text-right">
           <a href="#" className="hover:text-white transition-colors">Điều khoản dịch vụ</a>
           <a href="#" className="hover:text-white transition-colors">Chính sách bảo mật</a>
         </div>
