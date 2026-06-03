@@ -7,5 +7,5 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: GROQ_API_KEY
+      - key: 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
         sync: false
