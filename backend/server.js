@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const sqlite3 = require('sqlite3').verbose();
-const { open } = require('sqlite');
+const dbConnector = require('./db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
@@ -97,81 +96,153 @@ function calcRank(postCount) {
 }
 
 async function initDB() {
-  db = await open({ filename: './database.sqlite', driver: sqlite3.Database });
+  db = await dbConnector.init();
 
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      full_name TEXT,
-      title TEXT DEFAULT 'Tân Binh',
-      location TEXT DEFAULT 'Việt Nam',
-      bio TEXT DEFAULT 'Hãy cập nhật giới thiệu bản thân!',
-      avatar_url TEXT,
-      cover_url TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE IF NOT EXISTS locations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT, tag TEXT, location TEXT,
-      latitude REAL, longitude REAL,
-      best_month_start INTEGER, best_month_end INTEGER,
-      description TEXT, image_url TEXT,
-      views INTEGER DEFAULT 0
-    );
-    CREATE TABLE IF NOT EXISTS guides (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      location_name TEXT, category TEXT,
-      weather_info TEXT, luggage_notes TEXT,
-      must_try_experience TEXT, image_url TEXT,
-      read_time TEXT DEFAULT '5 phút'
-    );
-    CREATE TABLE IF NOT EXISTS news (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT, description TEXT, category TEXT,
-      published_at TEXT, image_url TEXT,
-      read_time TEXT DEFAULT '3 phút',
-      is_featured INTEGER DEFAULT 0
-    );
-    CREATE TABLE IF NOT EXISTS posts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER, content TEXT,
-      location TEXT, image_url TEXT,
-      likes INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    );
-    CREATE TABLE IF NOT EXISTS post_likes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      post_id INTEGER, user_id INTEGER,
-      UNIQUE(post_id, user_id)
-    );
-    CREATE TABLE IF NOT EXISTS saved_posts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      post_id INTEGER, user_id INTEGER,
-      UNIQUE(post_id, user_id)
-    );
-    CREATE TABLE IF NOT EXISTS comments (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      post_id INTEGER, user_id INTEGER, content TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (post_id) REFERENCES posts(id),
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    );
-  `);
+  const isPG = db.constructor.name === 'PostgreSQLAdapter';
 
-  // OAuth columns (migrate safely — idempotent)
-  const addCol = async (table, col, def) => { try { await db.run(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`); } catch {} };
-  await addCol('users', 'google_id', 'TEXT');
-  await addCol('users', 'facebook_id', 'TEXT');
-  await addCol('users', 'email', 'TEXT');
-  await addCol('users', 'oauth_provider', 'TEXT DEFAULT "local"');
+  if (isPG) {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        full_name TEXT,
+        title TEXT DEFAULT 'Tân Binh',
+        location TEXT DEFAULT 'Việt Nam',
+        bio TEXT DEFAULT 'Hãy cập nhật giới thiệu bản thân!',
+        avatar_url TEXT,
+        cover_url TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        google_id TEXT,
+        facebook_id TEXT,
+        email TEXT,
+        oauth_provider TEXT DEFAULT 'local'
+      );
+      CREATE TABLE IF NOT EXISTS locations (
+        id SERIAL PRIMARY KEY,
+        name TEXT, tag TEXT, location TEXT,
+        latitude DOUBLE PRECISION, longitude DOUBLE PRECISION,
+        best_month_start INTEGER, best_month_end INTEGER,
+        description TEXT, image_url TEXT,
+        views INTEGER DEFAULT 0
+      );
+      CREATE TABLE IF NOT EXISTS guides (
+        id SERIAL PRIMARY KEY,
+        location_name TEXT, category TEXT,
+        weather_info TEXT, luggage_notes TEXT,
+        must_try_experience TEXT, image_url TEXT,
+        read_time TEXT DEFAULT '5 phút'
+      );
+      CREATE TABLE IF NOT EXISTS news (
+        id SERIAL PRIMARY KEY,
+        title TEXT, description TEXT, category TEXT,
+        published_at TEXT, image_url TEXT,
+        read_time TEXT DEFAULT '3 phút',
+        is_featured INTEGER DEFAULT 0
+      );
+      CREATE TABLE IF NOT EXISTS posts (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        content TEXT,
+        location TEXT, image_url TEXT,
+        likes INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS post_likes (
+        id SERIAL PRIMARY KEY,
+        post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE(post_id, user_id)
+      );
+      CREATE TABLE IF NOT EXISTS saved_posts (
+        id SERIAL PRIMARY KEY,
+        post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE(post_id, user_id)
+      );
+      CREATE TABLE IF NOT EXISTS comments (
+        id SERIAL PRIMARY KEY,
+        post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        content TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  } else {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        full_name TEXT,
+        title TEXT DEFAULT 'Tân Binh',
+        location TEXT DEFAULT 'Việt Nam',
+        bio TEXT DEFAULT 'Hãy cập nhật giới thiệu bản thân!',
+        avatar_url TEXT,
+        cover_url TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS locations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT, tag TEXT, location TEXT,
+        latitude REAL, longitude REAL,
+        best_month_start INTEGER, best_month_end INTEGER,
+        description TEXT, image_url TEXT,
+        views INTEGER DEFAULT 0
+      );
+      CREATE TABLE IF NOT EXISTS guides (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        location_name TEXT, category TEXT,
+        weather_info TEXT, luggage_notes TEXT,
+        must_try_experience TEXT, image_url TEXT,
+        read_time TEXT DEFAULT '5 phút'
+      );
+      CREATE TABLE IF NOT EXISTS news (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT, description TEXT, category TEXT,
+        published_at TEXT, image_url TEXT,
+        read_time TEXT DEFAULT '3 phút',
+        is_featured INTEGER DEFAULT 0
+      );
+      CREATE TABLE IF NOT EXISTS posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER, content TEXT,
+        location TEXT, image_url TEXT,
+        likes INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+      CREATE TABLE IF NOT EXISTS post_likes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER, user_id INTEGER,
+        UNIQUE(post_id, user_id)
+      );
+      CREATE TABLE IF NOT EXISTS saved_posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER, user_id INTEGER,
+        UNIQUE(post_id, user_id)
+      );
+      CREATE TABLE IF NOT EXISTS comments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER, user_id INTEGER, content TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (post_id) REFERENCES posts(id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+    `);
 
-  // News columns migration
-  await addCol('news', 'read_time', "TEXT DEFAULT '3 phút'");
-  await addCol('news', 'is_featured', "INTEGER DEFAULT 0");
-  await addCol('news', 'image_url', "TEXT");
+    // OAuth columns (migrate safely — idempotent)
+    const addCol = async (table, col, def) => { try { await db.run(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`); } catch {} };
+    await addCol('users', 'google_id', 'TEXT');
+    await addCol('users', 'facebook_id', 'TEXT');
+    await addCol('users', 'email', 'TEXT');
+    await addCol('users', 'oauth_provider', 'TEXT DEFAULT "local"');
+
+    // News columns migration
+    await addCol('news', 'read_time', "TEXT DEFAULT '3 phút'");
+    await addCol('news', 'is_featured', "INTEGER DEFAULT 0");
+    await addCol('news', 'image_url', "TEXT");
+  }
 
 
   // Seed users
@@ -638,7 +709,7 @@ app.post('/api/posts/:id/like', async (req, res) => {
     const existing = await db.get('SELECT id FROM post_likes WHERE post_id=? AND user_id=?', [req.params.id, user_id]);
     if (existing) {
       await db.run('DELETE FROM post_likes WHERE post_id=? AND user_id=?', [req.params.id, user_id]);
-      await db.run('UPDATE posts SET likes=MAX(0,likes-1) WHERE id=?', [req.params.id]);
+      await db.run('UPDATE posts SET likes = CASE WHEN likes > 0 THEN likes - 1 ELSE 0 END WHERE id=?', [req.params.id]);
       res.json({ status: 'success', liked: false });
     } else {
       await db.run('INSERT INTO post_likes (post_id,user_id) VALUES (?,?)', [req.params.id, user_id]);
