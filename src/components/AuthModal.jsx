@@ -112,24 +112,41 @@ function AuthModal({ isOpen, onClose, onAuthSuccess, defaultTab }) {
   const handleFacebookLogin = () => {
     if (!window.FB) {
       setError('Facebook SDK chưa tải xong, thử lại sau vài giây!');
+      console.error('[FB Login] window.FB not available');
       return;
     }
     setOauthLoading('facebook');
     setError('');
-    window.FB.login(async (response) => {
-      if (response.authResponse) {
-        const { accessToken, userID } = response.authResponse;
-        try {
-          const data = await callBackend('/api/auth/facebook', { accessToken, userID });
-          handleOAuthSuccess(data);
-        } catch {
-          setError('Lỗi kết nối server!');
+    console.log('[FB Login] Calling FB.login...');
+    try {
+      window.FB.login(async (response) => {
+        console.log('[FB Login] Response:', JSON.stringify(response));
+        if (response.authResponse) {
+          const { accessToken, userID } = response.authResponse;
+          console.log('[FB Login] Got token, calling backend...');
+          try {
+            const data = await callBackend('/api/auth/facebook', { accessToken, userID });
+            console.log('[FB Login] Backend response:', JSON.stringify(data));
+            handleOAuthSuccess(data);
+          } catch (err) {
+            console.error('[FB Login] Backend error:', err);
+            setError('Lỗi kết nối server: ' + (err.message || 'Unknown'));
+          }
+        } else {
+          console.warn('[FB Login] Login cancelled or failed. Status:', response.status);
+          if (response.status === 'unknown') {
+            setError('Đăng nhập Facebook thất bại. Có thể app đang ở Development Mode — chỉ admin/tester mới đăng nhập được.');
+          } else {
+            setError('Đăng nhập Facebook bị hủy!');
+          }
         }
-      } else {
-        setError('Đăng nhập Facebook bị hủy!');
-      }
+        setOauthLoading('');
+      }, { scope: 'public_profile,email' });
+    } catch (err) {
+      console.error('[FB Login] FB.login threw error:', err);
+      setError('Lỗi Facebook SDK: ' + err.message);
       setOauthLoading('');
-    }, { scope: 'public_profile,email' });
+    }
   };
 
   // ─── Form submit ─────────────────────────────────────────────
