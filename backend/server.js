@@ -781,10 +781,10 @@ app.post('/api/auth/google', async (req, res) => {
   const { access_token } = req.body;
   if (!access_token) return res.status(400).json({ status: 'error', message: 'Thiếu access token' });
   try {
-    const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    const gRes = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${access_token}` }
     });
-    const g = await gRes.json();
+    const g = gRes.data;
     if (!g.sub) {
       console.error('Google Auth Error:', g);
       throw new Error('Token không hợp lệ hoặc hết hạn');
@@ -826,8 +826,8 @@ app.post('/api/auth/facebook', async (req, res) => {
       email = 'demo_fb@wanderly.vn';
       avatarUrl = 'https://i.pravatar.cc/150?img=12';
     } else {
-      const fbRes = await fetch(`https://graph.facebook.com/${userID}?fields=id,name,email,picture.type(large)&access_token=${accessToken}`);
-      const fb = await fbRes.json();
+      const fbRes = await axios.get(`https://graph.facebook.com/${userID}?fields=id,name,email,picture.type(large)&access_token=${accessToken}`);
+      const fb = fbRes.data;
       if (fb.error) throw new Error(fb.error.message);
       facebook_id = fb.id;
       name = fb.name;
@@ -2078,6 +2078,38 @@ app.post('/api/ai/guide-ask', async (req, res) => {
     console.error('AI Guide-Ask Error:', err.message);
     res.status(500).json({ status: 'error', message: err.message });
   }
+});
+
+// ============================================================
+// PRIVACY & DATA DELETION (Facebook yêu cầu)
+// ============================================================
+
+app.get('/privacy', (req, res) => {
+  res.send(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Chính sách quyền riêng tư - WanderlyVietNam</title>
+<style>body{font-family:'Poppins',sans-serif;max-width:700px;margin:40px auto;padding:20px;color:#333;line-height:1.8}
+h1{color:#0A241A}h2{color:#0A241A;margin-top:30px}a{color:#D4AF37}</style></head><body>
+<h1>🌍 Chính Sách Quyền Riêng Tư</h1><p><strong>WanderlyVietNam</strong> cam kết bảo vệ thông tin cá nhân của bạn.</p>
+<h2>1. Thông tin thu thập</h2><p>Khi đăng nhập bằng Google hoặc Facebook, chúng tôi nhận: tên, email và ảnh đại diện.</p>
+<h2>2. Mục đích sử dụng</h2><p>Thông tin chỉ dùng để tạo tài khoản và cá nhân hóa trải nghiệm trên website.</p>
+<h2>3. Chia sẻ dữ liệu</h2><p>Chúng tôi <strong>không</strong> bán hoặc chia sẻ dữ liệu cá nhân cho bên thứ ba.</p>
+<h2>4. Xóa dữ liệu</h2><p>Bạn có quyền yêu cầu xóa toàn bộ dữ liệu tài khoản bằng cách liên hệ email quản trị.</p>
+<h2>5. Liên hệ</h2><p>Email: <a href="mailto:koostzykax@hotmail.com">koostzykax@hotmail.com</a></p>
+</body></html>`);
+});
+
+app.post('/api/data-deletion', (req, res) => {
+  // Facebook Data Deletion Callback
+  const { signed_request } = req.body;
+  const confirmationCode = 'del_' + Date.now();
+  res.json({
+    url: 'https://wanderly-vietnam.onrender.com/privacy',
+    confirmation_code: confirmationCode
+  });
+});
+
+app.get('/api/data-deletion', (req, res) => {
+  res.json({ status: 'ok', message: 'Data deletion endpoint active' });
 });
 
 // Serve frontend SPA cho mọi route không phải API (production)
