@@ -119,19 +119,22 @@ function AuthModal({ isOpen, onClose, onAuthSuccess, defaultTab }) {
     setError('');
     console.log('[FB Login] Calling FB.login...');
     try {
-      window.FB.login(async (response) => {
+      window.FB.login((response) => {
         console.log('[FB Login] Response:', JSON.stringify(response));
         if (response.authResponse) {
           const { accessToken, userID } = response.authResponse;
           console.log('[FB Login] Got token, calling backend...');
-          try {
-            const data = await callBackend('/api/auth/facebook', { accessToken, userID });
-            console.log('[FB Login] Backend response:', JSON.stringify(data));
-            handleOAuthSuccess(data);
-          } catch (err) {
-            console.error('[FB Login] Backend error:', err);
-            setError('Lỗi kết nối server: ' + (err.message || 'Unknown'));
-          }
+          callBackend('/api/auth/facebook', { accessToken, userID })
+            .then((data) => {
+              console.log('[FB Login] Backend response:', JSON.stringify(data));
+              handleOAuthSuccess(data);
+              setOauthLoading('');
+            })
+            .catch((err) => {
+              console.error('[FB Login] Backend error:', err);
+              setError('Lỗi kết nối server: ' + (err.message || 'Unknown'));
+              setOauthLoading('');
+            });
         } else {
           console.warn('[FB Login] Login cancelled or failed. Status:', response.status);
           if (response.status === 'unknown') {
@@ -139,8 +142,8 @@ function AuthModal({ isOpen, onClose, onAuthSuccess, defaultTab }) {
           } else {
             setError('Đăng nhập Facebook bị hủy!');
           }
+          setOauthLoading('');
         }
-        setOauthLoading('');
       }, { scope: 'public_profile,email' });
     } catch (err) {
       console.error('[FB Login] FB.login threw error:', err);
