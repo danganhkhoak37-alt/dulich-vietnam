@@ -99,11 +99,21 @@ function Profile() {
   useEffect(() => {
     if (!loggedInUser) { navigate('/'); return; }
     fetch(`${API_URL}/api/profile/${loggedInUser.id}`)
-      .then(r => r.json()).then(data => { setUser(data); setFormData(data); });
+      .then(r => r.json()).then(data => { 
+        if (!data.error && data.id) {
+          setUser(data); setFormData(data); 
+        } else {
+          showToast('❌ Lỗi tải hồ sơ: ' + (data.message || data.error));
+        }
+      }).catch(() => showToast('❌ Lỗi kết nối mạng'));
     fetch(`${API_URL}/api/users/${loggedInUser.id}/posts`)
-      .then(r => r.json()).then(setPosts).catch(() => {});
+      .then(r => r.json()).then(data => {
+        if (Array.isArray(data)) setPosts(data);
+      }).catch(() => {});
     fetch(`${API_URL}/api/users/${loggedInUser.id}/saved-posts`)
-      .then(r => r.json()).then(setSavedPosts).catch(() => {});
+      .then(r => r.json()).then(data => {
+        if (Array.isArray(data)) setSavedPosts(data);
+      }).catch(() => {});
   }, []);
 
   const handleUpdate = async (e) => {
@@ -135,7 +145,7 @@ function Profile() {
   const rank = getRank(user.post_count || 0);
   const nextRank = RANK_SYSTEM[RANK_SYSTEM.indexOf(rank) + 1];
   const progress = getRankProgress(user.post_count || 0);
-  const totalLikes = posts.reduce((s, p) => s + (p.likes || 0), 0);
+  const totalLikes = Array.isArray(posts) ? posts.reduce((s, p) => s + (p.likes || 0), 0) : 0;
 
   return (
     <div className="min-h-screen bg-[#0A241A] pb-20">
