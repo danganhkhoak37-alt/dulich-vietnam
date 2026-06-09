@@ -89,7 +89,12 @@ function Guide() {
   }, [searchQuery]);
 
   const checklistItems = useMemo(() => {
-    const specific = selectedLocation.hangTrang ? selectedLocation.hangTrang.split(',').map(s => s.trim()) : [];
+    const specific = selectedLocation.hangTrang 
+      ? selectedLocation.hangTrang.split(',').map(s => {
+          let str = s.trim().replace(/\.$/, '');
+          return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+        }).filter(Boolean)
+      : [];
     const essentials = ['Giấy tờ tùy thân', 'Tiền mặt & Thẻ', 'Sạc dự phòng'];
     // Merge and remove duplicates (simple case-insensitive check)
     const combined = [...specific];
