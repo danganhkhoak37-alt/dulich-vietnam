@@ -22,7 +22,7 @@ function AIChatbox() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [aiStatus, setAiStatus] = useState('checking'); // 'online' | 'offline' | 'checking'
+  const [aiStatus, setAiStatus] = useState('checking'); // 'online' | 'local' | 'offline' | 'checking'
   const [showSuggestions, setShowSuggestions] = useState(true);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -52,7 +52,7 @@ function AIChatbox() {
     try {
       const res = await fetch(`${API_URL}/api/ai/status`);
       const data = await res.json();
-      setAiStatus(data.status === 'online' ? 'online' : 'offline');
+      setAiStatus(data.status);
     } catch {
       setAiStatus('offline');
     }
@@ -257,7 +257,7 @@ function AIChatbox() {
         {/* Status dot */}
         {!isOpen && (
           <span className={`absolute top-0 right-0 w-4 h-4 rounded-full border-2 border-white ${
-            aiStatus === 'online' ? 'bg-green-400' : aiStatus === 'offline' ? 'bg-red-400' : 'bg-yellow-400 animate-pulse'
+            aiStatus === 'online' ? 'bg-green-400' : aiStatus === 'local' ? 'bg-amber-500' : aiStatus === 'offline' ? 'bg-red-400' : 'bg-yellow-400 animate-pulse'
           }`} />
         )}
       </motion.button>
@@ -288,9 +288,11 @@ function AIChatbox() {
                 <div>
                   <h3 className="text-[#F5F2EB] font-bold text-sm">WanderlyAI</h3>
                   <div className="flex items-center gap-1.5">
-                    <span className={`w-2 h-2 rounded-full ${aiStatus === 'online' ? 'bg-green-400' : 'bg-red-400'}`} />
+                    <span className={`w-2 h-2 rounded-full ${
+                      aiStatus === 'online' ? 'bg-green-400' : aiStatus === 'local' ? 'bg-amber-500' : aiStatus === 'offline' ? 'bg-red-400' : 'bg-yellow-400 animate-pulse'
+                    }`} />
                     <span className="text-white/40 text-[10px] uppercase tracking-wider">
-                      {aiStatus === 'online' ? 'Sẵn sàng' : aiStatus === 'checking' ? 'Đang kiểm tra...' : 'Offline'}
+                      {aiStatus === 'online' ? 'Sẵn sàng' : aiStatus === 'local' ? 'Ngoại tuyến (Tra cứu)' : aiStatus === 'checking' ? 'Đang kiểm tra...' : 'Offline'}
                     </span>
                   </div>
                 </div>
@@ -436,7 +438,7 @@ function AIChatbox() {
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={aiStatus === 'online' ? 'Hỏi về du lịch Việt Nam...' : 'AI đang offline...'}
+                    placeholder={aiStatus === 'offline' ? 'AI đang offline...' : aiStatus === 'local' ? 'Tìm kiếm cẩm nang ngoại tuyến...' : 'Hỏi về du lịch Việt Nam...'}
                     disabled={aiStatus === 'offline'}
                     rows={1}
                     className="w-full resize-none bg-white/[0.06] border border-white/10 rounded-xl px-4 py-3 text-[#F5F2EB] text-sm placeholder-white/25 outline-none focus:border-[#D4AF37]/50 focus:bg-white/[0.08] transition-all disabled:opacity-40 disabled:cursor-not-allowed"

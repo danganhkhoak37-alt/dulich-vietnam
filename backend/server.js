@@ -2055,14 +2055,17 @@ const ragEngine = require('./ragEngine');
 app.get('/api/ai/status', async (req, res) => {
   try {
     const groqStatus = await ragEngine.checkGroq();
+    const status = groqStatus.online ? 'online' : (ragEngine.isReady ? 'local' : 'offline');
     res.json({
-      status: groqStatus.online ? 'online' : 'offline',
+      status,
       ragReady: ragEngine.isReady,
       ragDocuments: ragEngine.vectorStore?.size || 0,
       models: groqStatus.models?.map(m => m.id || m.name) || [],
       message: groqStatus.online
         ? 'WanderlyAI sẵn sàng phục vụ qua Groq API! 🌟'
-        : 'AI đang offline. Vui lòng cấu hình biến môi trường GROQ_API_KEY trong file .env hoặc trên Render Dashboard.'
+        : (ragEngine.isReady 
+            ? 'WanderlyAI đang hoạt động ở chế độ Ngoại tuyến (Local Search). 🌐'
+            : 'AI đang offline. Vui lòng cấu hình biến môi trường GROQ_API_KEY trong file .env hoặc trên Render Dashboard.')
     });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
@@ -2077,10 +2080,29 @@ app.post('/api/ai/chat', async (req, res) => {
   try {
     const groqStatus = await ragEngine.checkGroq();
     if (!groqStatus.online) {
-      return res.status(503).json({
-        status: 'offline',
-        message: 'AI đang offline. Vui lòng kiểm tra cấu hình GROQ_API_KEY trong file .env hoặc trên Render Dashboard.'
-      });
+      if (ragEngine.isReady) {
+        // Fallback to local search results
+        const results = await ragEngine.search(message);
+        let reply;
+        if (results.length > 0) {
+          reply = `🌐 **Chế độ ngoại tuyến (Local Search)**\nKết nối AI hiện tại đang gián đoạn, dưới đây là thông tin cẩm nang tìm thấy cho bạn:\n\n` +
+            results.map(r => `📍 **${r.metadata.name} (${r.metadata.province})**\n${r.text}`).join('\n\n');
+        } else {
+          reply = `🌐 **Chế độ ngoại tuyến (Local Search)**\nKết nối AI đang gián đoạn và mình không tìm thấy thông tin nào phù hợp cho câu hỏi của bạn trong cẩm nang. Bạn vui lòng kiểm tra lại cấu hình \`GROQ_API_KEY\` nhé!`;
+        }
+        const sources = results.map(r => ({
+          name: r.metadata.name,
+          province: r.metadata.province,
+          type: r.metadata.type,
+          score: Math.round(r.score * 100) / 100
+        }));
+        return res.json({ status: 'success', reply, sources });
+      } else {
+        return res.status(503).json({
+          status: 'offline',
+          message: 'AI đang offline và RAG Index chưa sẵn sàng.'
+        });
+      }
     }
 
     const result = await ragEngine.chat(message, history || []);
@@ -2099,10 +2121,47 @@ app.post('/api/ai/chat-stream', async (req, res) => {
   try {
     const groqStatus = await ragEngine.checkGroq();
     if (!groqStatus.online) {
-      return res.status(503).json({
-        status: 'offline',
-        message: 'AI đang offline. Vui lòng kiểm tra cấu hình GROQ_API_KEY trong file .env hoặc trên Render Dashboard.'
-      });
+      if (ragEngine.isReady) {
+        // Stream local RAG fallback response
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('X-Accel-Buffering', 'no');
+
+        const results = await ragEngine.search(message);
+        const sources = results.map(r => ({
+          name: r.metadata.name,
+          province: r.metadata.province,
+          type: r.metadata.type,
+          score: Math.round(r.score * 100) / 100
+        }));
+        
+        res.write(`data: ${JSON.stringify({ type: 'sources', data: sources })}\n\n`);
+
+        let reply = '';
+        if (results.length > 0) {
+          reply = `🌐 **Chế độ ngoại tuyến (Local Search)**\nKết nối AI hiện tại đang gián đoạn, dưới đây là thông tin cẩm nang tìm thấy cho bạn:\n\n` +
+            results.map(r => `📍 **${r.metadata.name} (${r.metadata.province})**\n${r.text}`).join('\n\n');
+        } else {
+          reply = `🌐 **Chế độ ngoại tuyến (Local Search)**\nKết nối AI đang gián đoạn và mình không tìm thấy thông tin nào phù hợp cho câu hỏi của bạn trong cẩm nang. Bạn vui lòng kiểm tra lại cấu hình \`GROQ_API_KEY\` nhé!`;
+        }
+
+        // Stream the words to simulate typing
+        const words = reply.split(' ');
+        for (const word of words) {
+          res.write(`data: ${JSON.stringify({ type: 'token', data: word + ' ' })}\n\n`);
+          await new Promise(resolve => setTimeout(resolve, 30));
+        }
+        res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+        res.write('data: [DONE]\n\n');
+        res.end();
+        return;
+      } else {
+        return res.status(503).json({
+          status: 'offline',
+          message: 'AI đang offline và RAG Index chưa sẵn sàng.'
+        });
+      }
     }
 
     // Set SSE headers
@@ -2137,10 +2196,26 @@ app.post('/api/ai/guide-ask', async (req, res) => {
   try {
     const groqStatus = await ragEngine.checkGroq();
     if (!groqStatus.online) {
-      return res.status(503).json({
-        status: 'offline',
-        message: 'AI đang offline. Vui lòng kiểm tra cấu hình GROQ_API_KEY trong file .env hoặc trên Render Dashboard.'
-      });
+      if (ragEngine.isReady) {
+        const result = await ragEngine.search(`${locationName} ${question}`, 3);
+        let answer;
+        if (result.length > 0) {
+          answer = `🌐 **Chế độ ngoại tuyến (Local Search)**\nKết nối AI đang gián đoạn, dưới đây là thông tin cẩm nang tìm thấy cho địa danh **${locationName}**:\n\n` +
+            result.map(r => r.text).join('\n\n');
+        } else {
+          answer = `🌐 **Chế độ ngoại tuyến (Local Search)**\nKhông tìm thấy thông tin nào phù hợp cho câu hỏi về **${locationName}** trong cẩm nang.`;
+        }
+        return res.json({
+          status: 'success',
+          answer,
+          sources: result.map(r => ({ name: r.metadata.name, province: r.metadata.province }))
+        });
+      } else {
+        return res.status(503).json({
+          status: 'offline',
+          message: 'AI đang offline và RAG Index chưa sẵn sàng.'
+        });
+      }
     }
 
     const result = await ragEngine.askAboutLocation(locationName, question);
