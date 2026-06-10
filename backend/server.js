@@ -188,6 +188,25 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // OAuth & Map columns migration for PostgreSQL (idempotent)
+    const addColPG = async (table, col, def) => { 
+      try { await db.run(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`); } catch (e) { /* ignore if exists */ } 
+    };
+    await addColPG('users', 'google_id', 'TEXT');
+    await addColPG('users', 'facebook_id', 'TEXT');
+    await addColPG('users', 'email', 'TEXT');
+    await addColPG('users', 'oauth_provider', "TEXT DEFAULT 'local'");
+    
+    await addColPG('news', 'read_time', "TEXT DEFAULT '3 phút'");
+    await addColPG('news', 'is_featured', "INTEGER DEFAULT 0");
+    await addColPG('news', 'image_url', "TEXT");
+
+    await addColPG('users', 'map_lat', 'DOUBLE PRECISION');
+    await addColPG('users', 'map_lng', 'DOUBLE PRECISION');
+    await addColPG('users', 'map_status', 'TEXT');
+    await addColPG('users', 'map_tags', 'TEXT');
+
   } else {
     await db.exec(`
       CREATE TABLE IF NOT EXISTS users (
