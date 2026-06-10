@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import API_URL from '../config/api';
+import CommunityMap from '../components/CommunityMap';
 
 // No mock posts anymore
 
@@ -370,6 +371,7 @@ function PostCard({ post, onRefresh }) {
 
 // ============================================================
 function Community() {
+  const [activeTab, setActiveTab] = useState('feed');
   const [posts, setPosts] = useState([]);
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostLocation, setNewPostLocation] = useState('');
@@ -495,89 +497,122 @@ function Community() {
           </div>
         </aside>
 
-        {/* ===== CỘT GIỮA: FEED ===== */}
+        {/* ===== CỘT GIỮA: FEED/MAP ===== */}
         <main className="col-span-1 lg:col-span-2 space-y-5">
-          {/* Post Form */}
-          <div className="bg-[#0D2D1F] p-5 rounded-[1.5rem] border border-white/5">
-            <div className="flex gap-4">
-              <img
-                src={loggedInUser?.avatar_url || 'https://i.pravatar.cc/150'}
-                className="w-11 h-11 rounded-full object-cover border-2 border-[#D4AF37]/30 flex-shrink-0"
-                alt="ava"
-                onError={(e) => { e.target.src = 'https://i.pravatar.cc/150'; }}
-              />
-              <div className="flex-1">
-                <textarea
-                  placeholder={loggedInUser ? 'Hôm nay bạn đã đến đâu? Chia sẻ với cộng đồng...' : 'Vui lòng đăng nhập để chia sẻ...'}
-                  className="w-full bg-[#112418] text-white placeholder-white/20 p-4 rounded-xl resize-none h-24 outline-none focus:ring-2 focus:ring-[#D4AF37]/40 text-sm border border-white/5 transition-all"
-                  value={newPostContent}
-                  onChange={(e) => setNewPostContent(e.target.value)}
-                  disabled={!loggedInUser}
-                />
-                {/* Image Preview */}
-                {previewUrl && (
-                  <div className="relative mt-3 w-32 h-32 rounded-lg overflow-hidden border border-white/10">
-                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-                    <button 
-                      onClick={() => { setSelectedFile(null); setPreviewUrl(''); }}
-                      className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-black"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
-                {/* Location input */}
-                {loggedInUser && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[#D4AF37] text-sm">📍</span>
-                    <input
-                      type="text"
-                      placeholder="Thêm vị trí..."
-                      className="flex-1 bg-transparent text-white/60 placeholder-white/20 text-xs outline-none border-b border-white/10 pb-1"
-                      value={newPostLocation}
-                      onChange={(e) => setNewPostLocation(e.target.value)}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
-              <div className="flex gap-3 text-white/40">
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                  className="hidden" 
-                />
-                <button 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="hover:text-[#D4AF37] flex items-center gap-1.5 text-xs font-bold transition-colors"
-                >
-                  <span className="text-base">🖼️</span> Ảnh/Video
-                </button>
-                <button className="hover:text-[#D4AF37] flex items-center gap-1.5 text-xs font-bold transition-colors">
-                  <span className="text-base">📍</span> Check-in
-                </button>
-              </div>
-              <button
-                onClick={handlePost}
-                disabled={loading || !loggedInUser || (!newPostContent.trim() && !selectedFile)}
-                className="bg-[#D4AF37] text-black px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest hover:bg-white disabled:opacity-30 transition-all"
-              >
-                {loading ? '⏳ Đang đăng...' : '✈️ Chia Sẻ'}
-              </button>
-            </div>
+          {/* Tabs Navigation */}
+          <div className="flex gap-2 bg-[#0D2D1F] p-2 rounded-2xl border border-white/5">
+            <button 
+              onClick={() => setActiveTab('feed')}
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all uppercase tracking-widest ${activeTab === 'feed' ? 'bg-[#D4AF37] text-black shadow-lg' : 'text-white/50 hover:bg-white/5 hover:text-white'}`}
+            >
+              📝 Bảng Tin
+            </button>
+            <button 
+              onClick={() => setActiveTab('map')}
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all uppercase tracking-widest ${activeTab === 'map' ? 'bg-[#D4AF37] text-black shadow-lg' : 'text-white/50 hover:bg-white/5 hover:text-white'}`}
+            >
+              🗺️ Bản Đồ Phượt Thủ
+            </button>
           </div>
 
-          {/* Feed */}
-          <div className="space-y-5">
-            {posts.length === 0 ? (
-              <p className="text-center text-white/30 py-10">Chưa có bài viết nào.</p>
-            ) : (
-              posts.map((post) => <PostCard key={post.id} post={post} onRefresh={fetchPosts} />)
-            )}
-          </div>
+          {activeTab === 'feed' ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-5"
+            >
+              {/* Post Form */}
+              <div className="bg-[#0D2D1F] p-5 rounded-[1.5rem] border border-white/5">
+                <div className="flex gap-4">
+                  <img
+                    src={loggedInUser?.avatar_url || 'https://i.pravatar.cc/150'}
+                    className="w-11 h-11 rounded-full object-cover border-2 border-[#D4AF37]/30 flex-shrink-0"
+                    alt="ava"
+                    onError={(e) => { e.target.src = 'https://i.pravatar.cc/150'; }}
+                  />
+                  <div className="flex-1">
+                    <textarea
+                      placeholder={loggedInUser ? 'Hôm nay bạn đã đến đâu? Chia sẻ với cộng đồng...' : 'Vui lòng đăng nhập để chia sẻ...'}
+                      className="w-full bg-[#112418] text-white placeholder-white/20 p-4 rounded-xl resize-none h-24 outline-none focus:ring-2 focus:ring-[#D4AF37]/40 text-sm border border-white/5 transition-all"
+                      value={newPostContent}
+                      onChange={(e) => setNewPostContent(e.target.value)}
+                      disabled={!loggedInUser}
+                    />
+                    {/* Image Preview */}
+                    {previewUrl && (
+                      <div className="relative mt-3 w-32 h-32 rounded-lg overflow-hidden border border-white/10">
+                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                        <button 
+                          onClick={() => { setSelectedFile(null); setPreviewUrl(''); }}
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-black"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                    {/* Location input */}
+                    {loggedInUser && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-[#D4AF37] text-sm">📍</span>
+                        <input
+                          type="text"
+                          placeholder="Thêm vị trí..."
+                          className="flex-1 bg-transparent text-white/60 placeholder-white/20 text-xs outline-none border-b border-white/10 pb-1"
+                          value={newPostLocation}
+                          onChange={(e) => setNewPostLocation(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
+                  <div className="flex gap-3 text-white/40">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      ref={fileInputRef} 
+                      onChange={handleFileChange} 
+                      className="hidden" 
+                    />
+                    <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="hover:text-[#D4AF37] flex items-center gap-1.5 text-xs font-bold transition-colors"
+                    >
+                      <span className="text-base">🖼️</span> Ảnh/Video
+                    </button>
+                    <button className="hover:text-[#D4AF37] flex items-center gap-1.5 text-xs font-bold transition-colors">
+                      <span className="text-base">📍</span> Check-in
+                    </button>
+                  </div>
+                  <button
+                    onClick={handlePost}
+                    disabled={loading || !loggedInUser || (!newPostContent.trim() && !selectedFile)}
+                    className="bg-[#D4AF37] text-black px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest hover:bg-white disabled:opacity-30 transition-all"
+                  >
+                    {loading ? '⏳ Đang đăng...' : '✈️ Chia Sẻ'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Feed */}
+              <div className="space-y-5">
+                {posts.length === 0 ? (
+                  <p className="text-center text-white/30 py-10">Chưa có bài viết nào.</p>
+                ) : (
+                  posts.map((post) => <PostCard key={post.id} post={post} onRefresh={fetchPosts} />)
+                )}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <CommunityMap />
+            </motion.div>
+          )}
         </main>
 
         {/* ===== CỘT PHẢI: TOP CONTRIBUTORS ===== */}
