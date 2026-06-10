@@ -262,6 +262,12 @@ async function initDB() {
     await addCol('news', 'read_time', "TEXT DEFAULT '3 phút'");
     await addCol('news', 'is_featured', "INTEGER DEFAULT 0");
     await addCol('news', 'image_url', "TEXT");
+
+    // Map user columns
+    await addCol('users', 'map_lat', 'REAL');
+    await addCol('users', 'map_lng', 'REAL');
+    await addCol('users', 'map_status', 'TEXT');
+    await addCol('users', 'map_tags', 'TEXT');
   }
 
 
