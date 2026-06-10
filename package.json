@@ -14,29 +14,29 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
-
   "dependencies": {
+    "@tailwindcss/vite": "^4.2.4",
+    "@vitejs/plugin-react": "^6.0.1",
+    "autoprefixer": "^10.5.0",
+    "axios": "^1.7.9",
+    "bcryptjs": "^2.4.3",
+    "cheerio": "^1.0.0",
+    "cloudinary": "^2.10.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
     "framer-motion": "^12.38.0",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^1.14.0",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.11.3",
+    "postcss": "^8.5.14",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.14.2",
-    "vite": "^8.0.10",
-    "@vitejs/plugin-react": "^6.0.1",
-    "@tailwindcss/vite": "^4.2.4",
-    "tailwindcss": "^4.2.4",
-    "autoprefixer": "^10.5.0",
-    "postcss": "^8.5.14",
-    "express": "^4.21.2",
-    "cors": "^2.8.5",
-    "sqlite3": "5.1.4",
     "sqlite": "^5.1.1",
-    "pg": "^8.11.3",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
-    "multer": "^1.4.5-lts.1",
-    "cheerio": "^1.0.0",
-    "axios": "^1.7.9"
+    "sqlite3": "5.1.4",
+    "tailwindcss": "^4.2.4",
+    "vite": "^8.0.10"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -50,5 +50,4 @@
     "globals": "^17.5.0",
     "vite-plugin-mkcert": "^2.0.0"
   }
-
 }
