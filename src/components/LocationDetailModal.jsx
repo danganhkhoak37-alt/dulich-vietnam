@@ -4,23 +4,138 @@ import { X, MapPin, BookOpen, Compass } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import locationDetails from '../data/locationDetails.json';
 
-// Tọa độ Street View thực tế cho 15 địa điểm nổi bật
+// Tọa độ Street View thực tế cho TẤT CẢ địa điểm trong hệ thống
 const STREET_VIEW_COORDS = {
-  'vịnh hạ long':     { lat: 20.9101,  lng: 107.1839, heading: 180, pitch: 10 },
-  'sapa':             { lat: 22.3363,  lng: 103.8438, heading: 90,  pitch: 5 },
-  'tràng an':         { lat: 20.2506,  lng: 105.8990, heading: 200, pitch: 10 },
-  'phố cổ hội an':    { lat: 15.8801,  lng: 108.3380, heading: 120, pitch: 5 },
-  'phú quốc':         { lat: 10.2899,  lng: 103.9840, heading: 270, pitch: 5 },
-  'phong nha - kẻ bàng': { lat: 17.5900, lng: 106.2834, heading: 30,  pitch: 10 },
-  'đà nẵng':          { lat: 16.0544,  lng: 108.2022, heading: 90,  pitch: 5 },
-  'đà lạt':           { lat: 11.9404,  lng: 108.4583, heading: 180, pitch: 5 },
-  'cố đô huế':        { lat: 16.4698,  lng: 107.5790, heading: 0,   pitch: 5 },
-  'tà xùa - hà giang': { lat: 23.2781, lng: 105.3620, heading: 60,  pitch: 10 },
-  'mũi né':           { lat: 10.9330,  lng: 108.2872, heading: 120, pitch: 5 },
-  'cát bà':           { lat: 20.7254,  lng: 106.9958, heading: 200, pitch: 5 },
-  'thánh địa mỹ sơn': { lat: 15.7634,  lng: 108.1222, heading: 150, pitch: 10 },
-  'gành đá đĩa':     { lat: 13.6714,  lng: 109.3788, heading: 90,  pitch: 5 },
-  'cù lao chàm':     { lat: 15.9500,  lng: 108.5167, heading: 180, pitch: 5 },
+  // ═══ 15 Địa điểm trang chủ ═══
+  'vịnh hạ long':         { lat: 20.9101,  lng: 107.1839, heading: 180, pitch: 10 },
+  'sapa':                 { lat: 22.3363,  lng: 103.8438, heading: 90,  pitch: 5 },
+  'sa pa':                { lat: 22.3363,  lng: 103.8438, heading: 90,  pitch: 5 },
+  'tràng an':             { lat: 20.2506,  lng: 105.8990, heading: 200, pitch: 10 },
+  'phố cổ hội an':        { lat: 15.8801,  lng: 108.3380, heading: 120, pitch: 5 },
+  'hội an':               { lat: 15.8801,  lng: 108.3380, heading: 120, pitch: 5 },
+  'phú quốc':             { lat: 10.2899,  lng: 103.9840, heading: 270, pitch: 5 },
+  'phong nha - kẻ bàng':  { lat: 17.5900,  lng: 106.2834, heading: 30,  pitch: 10 },
+  'phong nha':            { lat: 17.5900,  lng: 106.2834, heading: 30,  pitch: 10 },
+  'phong nha – kẻ bàng':  { lat: 17.5900,  lng: 106.2834, heading: 30,  pitch: 10 },
+  'đà nẵng':              { lat: 16.0544,  lng: 108.2022, heading: 90,  pitch: 5 },
+  'đà lạt':               { lat: 11.9404,  lng: 108.4583, heading: 180, pitch: 5 },
+  'cố đô huế':            { lat: 16.4698,  lng: 107.5790, heading: 0,   pitch: 5 },
+  'huế':                  { lat: 16.4698,  lng: 107.5790, heading: 0,   pitch: 5 },
+  'tà xùa - hà giang':   { lat: 23.2781,  lng: 105.3620, heading: 60,  pitch: 10 },
+  'tà xùa':               { lat: 21.2207,  lng: 104.6737, heading: 60,  pitch: 10 },
+  'hà giang':             { lat: 23.2781,  lng: 105.3620, heading: 60,  pitch: 10 },
+  'mũi né':               { lat: 10.9330,  lng: 108.2872, heading: 120, pitch: 5 },
+  'cát bà':               { lat: 20.7254,  lng: 106.9958, heading: 200, pitch: 5 },
+  'thánh địa mỹ sơn':    { lat: 15.7634,  lng: 108.1222, heading: 150, pitch: 10 },
+  'mỹ sơn':               { lat: 15.7634,  lng: 108.1222, heading: 150, pitch: 10 },
+  'gành đá đĩa':         { lat: 13.6714,  lng: 109.3788, heading: 90,  pitch: 5 },
+  'cù lao chàm':         { lat: 15.9500,  lng: 108.5167, heading: 180, pitch: 5 },
+
+  // ═══ Điểm đến theo mùa (Home.jsx) ═══
+  'nha trang':            { lat: 12.2388,  lng: 109.1967, heading: 90,  pitch: 5 },
+  'vịnh nha trang':       { lat: 12.2388,  lng: 109.1967, heading: 90,  pitch: 5 },
+  'phú yên':              { lat: 13.0882,  lng: 109.0929, heading: 120, pitch: 5 },
+  'đảo cô tô':           { lat: 20.9802,  lng: 107.7683, heading: 180, pitch: 5 },
+  'cô tô':                { lat: 20.9802,  lng: 107.7683, heading: 180, pitch: 5 },
+  'hà nội':               { lat: 21.0285,  lng: 105.8542, heading: 0,   pitch: 5 },
+  'mù cang chải':        { lat: 21.7842,  lng: 104.0879, heading: 90,  pitch: 10 },
+  'an giang':             { lat: 10.3863,  lng: 105.4381, heading: 180, pitch: 5 },
+  'mộc châu':             { lat: 20.8295,  lng: 104.6392, heading: 90,  pitch: 5 },
+
+  // ═══ Suggestions / Trending ═══
+  'bà nà hills':          { lat: 15.9977,  lng: 107.9942, heading: 150, pitch: 10 },
+  'hạ long':              { lat: 20.9101,  lng: 107.1839, heading: 180, pitch: 10 },
+
+  // ═══ Danh mục: Chữa Lành & Thiên Nhiên ═══
+  'hang sơn đoòng':      { lat: 17.5440,  lng: 106.1443, heading: 30,  pitch: 15 },
+  'fansipan':             { lat: 22.3033,  lng: 103.7750, heading: 180, pitch: 20 },
+  'mã pí lèng':          { lat: 23.2333,  lng: 105.4000, heading: 90,  pitch: 10 },
+  'đèo ô quy hồ':       { lat: 22.3500,  lng: 103.7667, heading: 270, pitch: 10 },
+  'sìn hồ':               { lat: 22.3667,  lng: 103.2333, heading: 90,  pitch: 5 },
+  'na hang':              { lat: 22.3547,  lng: 105.3872, heading: 120, pitch: 5 },
+  'bản giốc':             { lat: 22.8548,  lng: 106.7244, heading: 0,   pitch: 10 },
+  'ngườm ngao':           { lat: 22.8100,  lng: 106.6400, heading: 30,  pitch: 10 },
+  'hồ ba bể':            { lat: 22.4167,  lng: 105.6167, heading: 180, pitch: 5 },
+  'rừng tràm trà sư':    { lat: 10.6833,  lng: 105.0667, heading: 90,  pitch: 5 },
+  'núi cấm':              { lat: 10.5167,  lng: 105.0000, heading: 180, pitch: 10 },
+
+  // ═══ Danh mục: Biển Đảo Mùa Hè ═══
+  'biển mỹ khê':         { lat: 16.0328,  lng: 108.2468, heading: 90,  pitch: 5 },
+  'biển sầm sơn':        { lat: 19.7400,  lng: 105.9000, heading: 90,  pitch: 5 },
+  'biển cửa lò':         { lat: 18.7928,  lng: 105.7203, heading: 90,  pitch: 5 },
+  'biển thiên cầm':      { lat: 18.4833,  lng: 105.9500, heading: 90,  pitch: 5 },
+  'đồ sơn':               { lat: 20.7128,  lng: 106.7903, heading: 180, pitch: 5 },
+  'biển đồng châu':      { lat: 20.4500,  lng: 106.5833, heading: 90,  pitch: 5 },
+  'hang rái':             { lat: 11.5833,  lng: 109.0167, heading: 90,  pitch: 10 },
+  'bàu trắng':           { lat: 10.9500,  lng: 108.3333, heading: 120, pitch: 5 },
+  'đảo phú quý':         { lat: 10.5333,  lng: 108.9500, heading: 180, pitch: 5 },
+
+  // ═══ Danh mục: Văn Hoá & Lịch Sử ═══
+  'đại nội huế':         { lat: 16.4698,  lng: 107.5790, heading: 0,   pitch: 5 },
+  'thành nhà hồ':        { lat: 20.0667,  lng: 105.6000, heading: 90,  pitch: 5 },
+  'văn miếu':             { lat: 21.0286,  lng: 105.8355, heading: 180, pitch: 5 },
+  'chùa thiên mụ':       { lat: 16.4533,  lng: 107.5414, heading: 90,  pitch: 10 },
+  'chùa hương tích':     { lat: 20.6192,  lng: 105.7444, heading: 180, pitch: 10 },
+  'làng sen quê bác':    { lat: 18.6833,  lng: 105.4833, heading: 90,  pitch: 5 },
+  'thành cổ quảng trị':  { lat: 16.7333,  lng: 107.1833, heading: 0,   pitch: 5 },
+  'cầu hiền lương':      { lat: 16.8833,  lng: 107.0833, heading: 90,  pitch: 5 },
+  'lăng chủ tịch hồ chí minh': { lat: 21.0368, lng: 105.8344, heading: 180, pitch: 5 },
+  'đền hùng':             { lat: 21.3500,  lng: 105.3333, heading: 90,  pitch: 10 },
+  'chùa dâu':             { lat: 21.0833,  lng: 106.0667, heading: 180, pitch: 5 },
+  'chùa bút tháp':       { lat: 21.0833,  lng: 106.0500, heading: 90,  pitch: 5 },
+  'đền trần':             { lat: 20.4167,  lng: 106.1667, heading: 0,   pitch: 5 },
+  'tam chúc':             { lat: 20.4500,  lng: 105.7667, heading: 180, pitch: 10 },
+  'tân trào':             { lat: 21.8833,  lng: 105.5167, heading: 90,  pitch: 5 },
+  'tháp bà ponagar':     { lat: 12.2653,  lng: 109.1949, heading: 120, pitch: 10 },
+  'nhà cổ bình thủy':    { lat: 10.0667,  lng: 105.7333, heading: 180, pitch: 5 },
+  'miếu bà chúa xứ':    { lat: 10.7167,  lng: 105.0000, heading: 90,  pitch: 5 },
+  'chùa vĩnh tràng':    { lat: 10.3500,  lng: 106.3667, heading: 180, pitch: 5 },
+  'nhà công tử bạc liêu': { lat: 9.2833,  lng: 105.7167, heading: 0,   pitch: 5 },
+
+  // ═══ Danh mục: Phượt & Khám Phá ═══
+  'mai châu':             { lat: 20.6539,  lng: 105.0847, heading: 120, pitch: 5 },
+  'tam đảo':              { lat: 21.4583,  lng: 105.6417, heading: 180, pitch: 10 },
+  'chợ bến thành':       { lat: 10.7725,  lng: 106.6980, heading: 90,  pitch: 5 },
+  'phố đi bộ nguyễn huệ': { lat: 10.7741, lng: 106.7037, heading: 0,   pitch: 5 },
+  'đồng văn':             { lat: 23.2743,  lng: 105.3588, heading: 60,  pitch: 10 },
+  'lũng cú':              { lat: 23.3633,  lng: 105.3193, heading: 0,   pitch: 10 },
+  'cát cát':              { lat: 22.3267,  lng: 103.8350, heading: 120, pitch: 10 },
+  'tam cốc':              { lat: 20.2147,  lng: 105.9236, heading: 180, pitch: 5 },
+  'hang múa':             { lat: 20.2169,  lng: 105.9136, heading: 90,  pitch: 15 },
+  'hồ gươm':             { lat: 21.0288,  lng: 105.8524, heading: 0,   pitch: 5 },
+  'hồ hoàn kiếm':        { lat: 21.0288,  lng: 105.8524, heading: 0,   pitch: 5 },
+  'sông hương':           { lat: 16.4637,  lng: 107.5909, heading: 90,  pitch: 5 },
+  'đồi chè':             { lat: 20.8300,  lng: 104.6400, heading: 90,  pitch: 5 },
+  'thác dải yếm':        { lat: 20.8833,  lng: 104.6333, heading: 180, pitch: 10 },
+  'đèo khau phạ':        { lat: 21.7000,  lng: 104.1333, heading: 90,  pitch: 10 },
+  'đồi a1':               { lat: 21.3833,  lng: 103.0167, heading: 0,   pitch: 5 },
+  'hồ hòa bình':         { lat: 20.8167,  lng: 105.0500, heading: 180, pitch: 5 },
+  'thanh thủy':           { lat: 20.9333,  lng: 105.2500, heading: 90,  pitch: 5 },
+  'tây thiên':            { lat: 21.4500,  lng: 105.6333, heading: 180, pitch: 10 },
+  'hồ núi cốc':          { lat: 21.5667,  lng: 105.7833, heading: 90,  pitch: 5 },
+  'mẫu sơn':              { lat: 21.8667,  lng: 106.8833, heading: 60,  pitch: 10 },
+  'bán đảo sơn trà':     { lat: 16.1131,  lng: 108.2761, heading: 180, pitch: 5 },
+  'eo gió':               { lat: 13.7500,  lng: 109.2833, heading: 90,  pitch: 5 },
+  'kỳ co':                { lat: 13.7333,  lng: 109.3000, heading: 90,  pitch: 5 },
+  'bãi xép':              { lat: 13.1333,  lng: 109.3000, heading: 90,  pitch: 5 },
+  'nhà thờ đức bà':      { lat: 10.7798,  lng: 106.6990, heading: 0,   pitch: 10 },
+  'landmark 81':          { lat: 10.7952,  lng: 106.7219, heading: 180, pitch: 15 },
+  'chợ nổi cái răng':    { lat: 10.0186,  lng: 105.7428, heading: 90,  pitch: 5 },
+  'bến ninh kiều':       { lat: 10.0333,  lng: 105.7833, heading: 180, pitch: 5 },
+  'cù lao thới sơn':    { lat: 10.3500,  lng: 106.3167, heading: 90,  pitch: 5 },
+
+  // ═══ Các thành phố / tỉnh lớn (fallback) ═══
+  'quảng ninh':           { lat: 20.9101,  lng: 107.1839, heading: 180, pitch: 10 },
+  'lào cai':              { lat: 22.3363,  lng: 103.8438, heading: 90,  pitch: 5 },
+  'ninh bình':            { lat: 20.2506,  lng: 105.8990, heading: 200, pitch: 10 },
+  'quảng nam':            { lat: 15.8801,  lng: 108.3380, heading: 120, pitch: 5 },
+  'kiên giang':           { lat: 10.2899,  lng: 103.9840, heading: 270, pitch: 5 },
+  'quảng bình':           { lat: 17.5900,  lng: 106.2834, heading: 30,  pitch: 10 },
+  'lâm đồng':            { lat: 11.9404,  lng: 108.4583, heading: 180, pitch: 5 },
+  'thừa thiên huế':      { lat: 16.4698,  lng: 107.5790, heading: 0,   pitch: 5 },
+  'bình thuận':           { lat: 10.9330,  lng: 108.2872, heading: 120, pitch: 5 },
+  'hải phòng':            { lat: 20.7254,  lng: 106.9958, heading: 200, pitch: 5 },
+  'phú yên':              { lat: 13.0882,  lng: 109.0929, heading: 120, pitch: 5 },
 };
 
 function getStreetViewUrl(title, province) {
@@ -33,13 +148,29 @@ function getStreetViewUrl(title, province) {
   return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=&pano=&heading=0&pitch=0&fov=90&query=${encodeURIComponent(title + ', ' + province + ', Vietnam')}`;
 }
 
-function getStreetViewEmbedUrl(title) {
+function getStreetViewEmbedUrl(title, province) {
   const key = title.toLowerCase().trim();
-  const coords = STREET_VIEW_COORDS[key];
+  let coords = STREET_VIEW_COORDS[key];
+  
+  // Nếu không tìm thấy chính xác, thử tìm theo substring
+  if (!coords) {
+    const keys = Object.keys(STREET_VIEW_COORDS);
+    const match = keys.find(k => key.includes(k) || k.includes(key));
+    if (match) coords = STREET_VIEW_COORDS[match];
+  }
+  
+  // Thử match theo tỉnh/thành phố
+  if (!coords && province) {
+    const provKey = province.toLowerCase().trim();
+    coords = STREET_VIEW_COORDS[provKey];
+  }
+
   if (coords) {
     return `https://maps.google.com/maps?q=&layer=c&cbll=${coords.lat},${coords.lng}&cbp=11,${coords.heading},0,0,${coords.pitch}&ie=UTF8&source=embed&output=svembed`;
   }
-  return null;
+  
+  // Fallback cuối cùng: dùng tên địa điểm để Google tự tìm Street View
+  return `https://maps.google.com/maps?q=${encodeURIComponent(title + ', ' + (province || '') + ', Vietnam')}&layer=c&ie=UTF8&source=embed&output=svembed`;
 }
 
 function LocationDetailModal({ isOpen, onClose, location }) {
@@ -57,7 +188,7 @@ function LocationDetailModal({ isOpen, onClose, location }) {
   const detailData = locationDetails.find(item => item.name.toLowerCase() === title.toLowerCase());
   const description = detailData ? detailData.description : (location.description || location.desc || 'Đang cập nhật thông tin chi tiết cho địa điểm này.');
 
-  const streetViewEmbedUrl = getStreetViewEmbedUrl(title);
+  const streetViewEmbedUrl = getStreetViewEmbedUrl(title, province);
   const streetViewExternalUrl = getStreetViewUrl(title, province);
 
   const handleClose3D = () => setShow3D(false);
@@ -122,25 +253,14 @@ function LocationDetailModal({ isOpen, onClose, location }) {
 
                 {/* Street View iframe */}
                 <div className="flex-1 relative">
-                  {streetViewEmbedUrl ? (
-                    <iframe
-                      title="street-view-3d"
-                      src={streetViewEmbedUrl}
-                      className="absolute inset-0 w-full h-full"
-                      style={{ border: 0 }}
-                      allowFullScreen
-                      loading="lazy"
-                    />
-                  ) : (
-                    <iframe
-                      title="street-view-3d-fallback"
-                      src={`https://maps.google.com/maps?q=${encodeURIComponent(title + ', ' + province + ', Vietnam')}&layer=c&ie=UTF8&source=embed&output=svembed`}
-                      className="absolute inset-0 w-full h-full"
-                      style={{ border: 0 }}
-                      allowFullScreen
-                      loading="lazy"
-                    />
-                  )}
+                  <iframe
+                    title="street-view-3d"
+                    src={streetViewEmbedUrl}
+                    className="absolute inset-0 w-full h-full"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                  />
                   {/* Loading overlay */}
                   <div className="absolute inset-0 flex items-center justify-center bg-[#0A241A] pointer-events-none animate-pulse" style={{ zIndex: -1 }}>
                     <div className="text-center">
