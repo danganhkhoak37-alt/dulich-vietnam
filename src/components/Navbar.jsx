@@ -85,7 +85,7 @@ function Navbar() {
               }}
             />
             <span className="hidden font-heading font-black text-white text-2xl tracking-tight">
-              Explore<span className="text-[#D4AF37]">VN</span>
+              Wanderly<span className="text-[#D4AF37]">VN</span>
             </span>
           </Link>
 
