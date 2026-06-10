@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
 
 // Load environment variables from .env file manually if exists
 try {
@@ -27,23 +28,42 @@ try {
   console.error('Không thể đọc file .env:', e.message);
 }
 
+// Cấu hình Cloudinary (lưu ảnh vĩnh viễn, không mất khi Render restart)
+if (process.env.CLOUDINARY_URL || (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY)) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  console.log('☁️  Cloudinary đã được cấu hình!');
+} else {
+  console.warn('⚠️  Chưa cấu hình Cloudinary — ảnh sẽ lưu local (mất sau restart)');
+}
+
+// Helper: Upload buffer lên Cloudinary
+function uploadToCloudinary(buffer, folder = 'wanderly') {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: 'image' },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result.secure_url);
+      }
+    );
+    stream.end(buffer);
+  });
+}
+
 const app = express();
 const JWT_SECRET = 'explorevn_secret_2026';
 
-// Tạo thư mục uploads nếu chưa có
+// Tạo thư mục uploads dự phòng (dùng khi chưa có Cloudinary)
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR);
 
-// Cấu hình Multer lưu ảnh vào thư mục uploads/
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${file.fieldname}_${Date.now()}${ext}`);
-  },
-});
+// Multer dùng memoryStorage để xử lý trước khi upload lên Cloudinary
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|webp|gif/;
@@ -316,21 +336,40 @@ initDB().catch(console.error);
 // ============================================================
 
 app.post('/api/register', async (req, res) => {
-  const { username, password, full_name } = req.body;
+  const { username, password, full_name, email } = req.body;
   if (!username || !password || !full_name)
     return res.status(400).json({ status: 'error', message: 'Vui lòng điền đầy đủ thông tin!' });
   try {
     if (await db.get('SELECT id FROM users WHERE username=?', [username]))
       return res.status(400).json({ status: 'error', message: 'Tên đăng nhập đã tồn tại!' });
+    if (email && await db.get('SELECT id FROM users WHERE email=?', [email]))
+      return res.status(400).json({ status: 'error', message: 'Email đã được sử dụng!' });
+      
     const hashed = await bcrypt.hash(password, 10);
     const r = await db.run(
-      'INSERT INTO users (username,password,full_name,avatar_url) VALUES (?,?,?,?)',
-      [username, hashed, full_name, `https://i.pravatar.cc/150?u=${username}`]
+      'INSERT INTO users (username,password,full_name,avatar_url,email) VALUES (?,?,?,?,?)',
+      [username, hashed, full_name, `https://i.pravatar.cc/150?u=${username}`, email || null]
     );
-    const user = await db.get('SELECT id,username,full_name,avatar_url,title,location,bio FROM users WHERE id=?', [r.lastID]);
+    const user = await db.get('SELECT id,username,full_name,avatar_url,title,location,bio,email FROM users WHERE id=?', [r.lastID]);
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ status: 'success', user, token });
   } catch (err) { res.status(500).json({ status: 'error', message: err.message }); }
+});
+
+app.post('/api/reset-password', async (req, res) => {
+  const { username, email, newPassword } = req.body;
+  if (!username || !email || !newPassword) 
+    return res.status(400).json({ status: 'error', message: 'Vui lòng điền đầy đủ thông tin!' });
+  try {
+    const user = await db.get('SELECT id FROM users WHERE username=? AND email=?', [username, email]);
+    if (!user) 
+      return res.status(404).json({ status: 'error', message: 'Tên đăng nhập hoặc email không đúng!' });
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await db.run('UPDATE users SET password=? WHERE id=?', [hashed, user.id]);
+    res.json({ status: 'success', message: 'Đổi mật khẩu thành công!' });
+  } catch (err) { 
+    res.status(500).json({ status: 'error', message: err.message }); 
+  }
 });
 
 app.post('/api/login', async (req, res) => {
@@ -380,11 +419,17 @@ app.put('/api/profile/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Upload avatar
+// Upload avatar → Cloudinary
 app.post('/api/upload/avatar/:id', upload.single('avatar'), async (req, res) => {
   if (!req.file) return res.status(400).json({ status: 'error', message: 'Không có file được tải lên' });
   try {
-    const avatarUrl = `/uploads/${req.file.filename}`;
+    let avatarUrl;
+    if (process.env.CLOUDINARY_CLOUD_NAME) {
+      avatarUrl = await uploadToCloudinary(req.file.buffer, 'wanderly/avatars');
+    } else {
+      const base64 = req.file.buffer.toString('base64');
+      avatarUrl = `data:${req.file.mimetype};base64,${base64}`;
+    }
     await db.run('UPDATE users SET avatar_url=? WHERE id=?', [avatarUrl, req.params.id]);
     res.json({ status: 'success', avatar_url: avatarUrl });
   } catch (err) {
@@ -392,11 +437,17 @@ app.post('/api/upload/avatar/:id', upload.single('avatar'), async (req, res) => 
   }
 });
 
-// Upload cover photo
+// Upload cover photo → Cloudinary
 app.post('/api/upload/cover/:id', upload.single('cover'), async (req, res) => {
   if (!req.file) return res.status(400).json({ status: 'error', message: 'Không có file được tải lên' });
   try {
-    const coverUrl = `/uploads/${req.file.filename}`;
+    let coverUrl;
+    if (process.env.CLOUDINARY_CLOUD_NAME) {
+      coverUrl = await uploadToCloudinary(req.file.buffer, 'wanderly/covers');
+    } else {
+      const base64 = req.file.buffer.toString('base64');
+      coverUrl = `data:${req.file.mimetype};base64,${base64}`;
+    }
     await db.run('UPDATE users SET cover_url=? WHERE id=?', [coverUrl, req.params.id]);
     res.json({ status: 'success', cover_url: coverUrl });
   } catch (err) {
@@ -404,11 +455,17 @@ app.post('/api/upload/cover/:id', upload.single('cover'), async (req, res) => {
   }
 });
 
-// Upload post image
+// Upload post image → Cloudinary
 app.post('/api/upload/post', upload.single('post_image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ status: 'error', message: 'Không có file được tải lên' });
   try {
-    const imageUrl = `/uploads/${req.file.filename}`;
+    let imageUrl;
+    if (process.env.CLOUDINARY_CLOUD_NAME) {
+      imageUrl = await uploadToCloudinary(req.file.buffer, 'wanderly/posts');
+    } else {
+      const base64 = req.file.buffer.toString('base64');
+      imageUrl = `data:${req.file.mimetype};base64,${base64}`;
+    }
     res.json({ status: 'success', image_url: imageUrl });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
