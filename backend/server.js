@@ -55,7 +55,7 @@ function uploadToCloudinary(buffer, folder = 'wanderly') {
 }
 
 const app = express();
-const JWT_SECRET = 'explorevn_secret_2026';
+const JWT_SECRET = 'wanderly_secret_2026';
 
 // Tạo thư mục uploads dự phòng (dùng khi chưa có Cloudinary)
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
@@ -270,7 +270,7 @@ async function initDB() {
   if (uc.c === 0) {
     const hash = await bcrypt.hash('123456', 10);
     await db.run('INSERT INTO users (username,password,full_name,title,location,bio,avatar_url) VALUES (?,?,?,?,?,?,?)',
-      ['admin','password123','Admin ExploreVN','Quản trị viên','Hà Nội, Việt Nam','Đội ngũ ExploreVN.','https://i.pravatar.cc/150?img=68']);
+      ['admin','password123','Admin Wanderly VietNam','Quản trị viên','Hà Nội, Việt Nam','Đội ngũ Wanderly VietNam.','https://i.pravatar.cc/150?img=68']);
     await db.run('INSERT INTO users (username,password,full_name,title,location,bio,avatar_url) VALUES (?,?,?,?,?,?,?)',
       ['traveler',hash,'Phượt Thủ 9x','Explorer','Đà Nẵng, Việt Nam','Mê khám phá mọi ngóc ngách Việt Nam.','https://i.pravatar.cc/150?img=11']);
   }
@@ -326,7 +326,7 @@ async function initDB() {
 
   // Seed posts removed to allow only real posts
 
-  console.log('✅ ExploreVN Database sẵn sàng!');
+  console.log('✅ Wanderly VietNam Database sẵn sàng!');
 }
 
 initDB().catch(console.error);
@@ -2325,4 +2325,4 @@ if (fs.existsSync(DIST_DIR)) {
 }
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 ExploreVN Backend đang chạy tại cổng ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Wanderly VietNam Backend đang chạy tại cổng ${PORT}`));

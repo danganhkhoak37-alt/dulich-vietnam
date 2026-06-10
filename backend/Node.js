@@ -5,7 +5,7 @@ const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
   password: 'your_password',
-  database: 'ExploreVN_DB'
+  database: 'Wanderly_DB'
 });
 
 // API Gợi ý du lịch thông minh

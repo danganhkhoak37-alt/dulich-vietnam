@@ -77,7 +77,7 @@ function Navbar() {
           >
             <img
               src="/logo.png"
-              alt="ExploreVN Logo"
+              alt="Wanderly VietNam Logo"
               className="h-14 md:h-18 w-auto object-contain"
               onError={(e) => {
                 e.target.style.display = 'none';
