@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import API_URL from '../config/api';
 import ChatDrawer from '../components/ChatDrawer';
+import LocationCard from '../components/LocationCard';
 
 const RANK_SYSTEM = [
   { name: 'Tân Binh',      icon: '🌱', min: 0,  max: 5,   color: 'text-gray-400' },
@@ -24,12 +25,13 @@ function getRankProgress(postCount) {
 }
 
 const DEFAULT_COVER = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1200';
-const TABS = ['Bài Viết', 'Đã Lưu', 'Lời Mời', 'Bạn Bè', 'Thống Kê'];
+const TABS = ['Bài Viết', 'Bài Viết Đã Lưu', 'Địa Điểm Yêu Thích', 'Lời Mời', 'Bạn Bè', 'Thống Kê'];
 
 function Profile() {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [savedPosts, setSavedPosts] = useState([]);
+  const [savedLocations, setSavedLocations] = useState([]);
   const [activeTab, setActiveTab] = useState('Bài Viết');
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
@@ -130,6 +132,12 @@ function Profile() {
       .then(r => r.json()).then(data => {
         if (Array.isArray(data)) setSavedPosts(data);
       }).catch(() => {});
+    fetch(`${API_URL}/api/saved-locations`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` }
+    })
+      .then(r => r.json()).then(data => {
+        if (data.status === 'success') setSavedLocations(data.data);
+      }).catch(() => {});
     // Fetch connections data
     fetchPendingRequests();
     fetchFriends();
@@ -158,8 +166,32 @@ function Profile() {
     } catch (e) { console.error(e); }
   };
 
-  const handleRespondConnection = async (connectionId, action) => {
-    setRespondingId(connectionId);
+  const handleToggleSaveLocation = async (locTitle) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/saved-locations/toggle`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          location_name: locTitle
+        })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        if (data.message === 'removed') {
+          setSavedLocations(prev => prev.filter(l => l.location_name !== locTitle));
+        }
+      }
+    } catch (err) {
+      console.error('Lỗi lưu địa điểm:', err);
+    }
+  };
+
+  const handleRespondConnection = async (connId, action) => {
+    setRespondingId(connId);
     try {
       const res = await fetch(`${API_URL}/api/connections/respond`, {
         method: 'POST',
@@ -339,7 +371,7 @@ function Profile() {
           <div className="grid grid-cols-3 gap-4 mt-6 mb-6">
             {[
               { label: 'Bài viết', value: user.post_count || posts.length, icon: '📝' },
-              { label: 'Đã lưu', value: savedPosts.length, icon: '🔖' },
+              { label: 'Bài đã lưu', value: savedPosts.length, icon: '🔖' },
               { label: 'Lượt thích', value: totalLikes >= 1000 ? `${(totalLikes/1000).toFixed(1)}k` : totalLikes, icon: '❤️' },
             ].map((stat, i) => (
               <div key={i} className="bg-[#0D2D1F] rounded-2xl p-4 text-center border border-white/5">
@@ -455,7 +487,7 @@ function Profile() {
               )}
 
               {/* ĐÃ LƯU */}
-              {activeTab === 'Đã Lưu' && (
+              {activeTab === 'Bài Viết Đã Lưu' && (
                 <div className="space-y-4">
                   {savedPosts.length === 0 ? (
                     <div className="text-center py-16 text-white/30">
@@ -475,6 +507,39 @@ function Profile() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* ĐỊA ĐIỂM YÊU THÍCH */}
+              {activeTab === 'Địa Điểm Yêu Thích' && (
+                <div className="space-y-4">
+                  {savedLocations.length === 0 ? (
+                    <div className="text-center py-16 text-white/30">
+                      <div className="text-4xl mb-3">📍</div>
+                      <p>Chưa có địa điểm yêu thích nào.</p>
+                      <p className="text-xs mt-1">Hãy bấm thả tim các địa điểm ở trang chủ để lưu lại!</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {savedLocations.map((loc) => (
+                        <div key={loc.id}>
+                          <LocationCard 
+                            loc={{
+                              name: loc.location_name,
+                              location: loc.province,
+                              image_url: loc.image_url,
+                              best_month_start: 1,
+                              best_month_end: 12
+                            }} 
+                            month={new Date().getMonth() + 1} 
+                            onClick={() => navigate('/guide', { state: { locationName: loc.location_name, province: loc.province } })}
+                            isSaved={true}
+                            onToggleSave={() => handleToggleSaveLocation(loc.location_name)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 

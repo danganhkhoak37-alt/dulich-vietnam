@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
+import { Heart } from 'lucide-react';
 
-const LocationCard = ({ loc, month, onClick }) => {
+const LocationCard = ({ loc, month, onClick, isSaved, onToggleSave }) => {
   const navigate = useNavigate();
   const isBestSeason = loc.best_month_start <= loc.best_month_end
     ? (month >= loc.best_month_start && month <= loc.best_month_end)
@@ -43,6 +44,22 @@ const LocationCard = ({ loc, month, onClick }) => {
             {loc.tag || 'Khám phá'}
           </span>
         </div>
+        
+        {/* Favorite Button */}
+        {onToggleSave && (
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSave(loc);
+            }}
+            className="absolute top-4 left-4 z-20 p-2 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 hover:bg-black/60 transition-all group/heart hover:scale-110"
+          >
+            <Heart 
+              size={18} 
+              className={`transition-colors ${isSaved ? 'text-red-500 fill-red-500' : 'text-white group-hover/heart:text-red-400'}`} 
+            />
+          </button>
+        )}
       </div>
 
       {/* Nội dung */}

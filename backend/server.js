@@ -180,6 +180,15 @@ async function initDB() {
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         UNIQUE(post_id, user_id)
       );
+      CREATE TABLE IF NOT EXISTS saved_locations (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        location_name TEXT,
+        province TEXT,
+        image_url TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, location_name)
+      );
       CREATE TABLE IF NOT EXISTS comments (
         id SERIAL PRIMARY KEY,
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
@@ -276,6 +285,16 @@ async function initDB() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         post_id INTEGER, user_id INTEGER,
         UNIQUE(post_id, user_id)
+      );
+      CREATE TABLE IF NOT EXISTS saved_locations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        location_name TEXT,
+        province TEXT,
+        image_url TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, location_name),
+        FOREIGN KEY (user_id) REFERENCES users(id)
       );
       CREATE TABLE IF NOT EXISTS comments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -880,6 +899,29 @@ app.get('/api/users/:id/saved-posts', async (req, res) => {
       WHERE sp.user_id=? ORDER BY sp.id DESC
     `, [req.params.id]);
     res.json(posts);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/saved-locations', authMiddleware, async (req, res) => {
+  try {
+    const locations = await db.all(`SELECT * FROM saved_locations WHERE user_id=? ORDER BY created_at DESC`, [req.user.id]);
+    res.json({ status: 'success', data: locations });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/saved-locations/toggle', authMiddleware, async (req, res) => {
+  try {
+    const { location_name, province, image_url } = req.body;
+    if (!location_name) return res.status(400).json({ error: 'Missing location_name' });
+    
+    const existing = await db.get('SELECT id FROM saved_locations WHERE user_id=? AND location_name=?', [req.user.id, location_name]);
+    if (existing) {
+      await db.run('DELETE FROM saved_locations WHERE id=?', [existing.id]);
+      res.json({ status: 'success', message: 'removed' });
+    } else {
+      await db.run('INSERT INTO saved_locations (user_id, location_name, province, image_url) VALUES (?, ?, ?, ?)', [req.user.id, location_name, province, image_url]);
+      res.json({ status: 'success', message: 'added' });
+    }
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

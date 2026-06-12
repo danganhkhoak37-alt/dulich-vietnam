@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Search, Navigation, Calendar, ChevronRight, BookOpen } from 'lucide-react';
+import { MapPin, Search, Navigation, Calendar, ChevronRight, BookOpen, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LocationCard from '../components/LocationCard';
 import AuthModal from '../components/AuthModal';
@@ -102,6 +102,61 @@ function Suggestions() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [savedLocations, setSavedLocations] = useState([]);
+
+  // Fetch saved locations
+  const fetchSavedLocations = async () => {
+    if (!user) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/saved-locations`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setSavedLocations(data.data.map(l => l.location_name));
+      }
+    } catch (err) {
+      console.error('Lỗi tải địa điểm yêu thích:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSavedLocations();
+  }, [user]);
+
+  const handleToggleSave = async (loc) => {
+    if (!user) {
+      alert('Vui lòng đăng nhập để lưu địa điểm!');
+      setIsAuthOpen(true);
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/saved-locations/toggle`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          location_name: loc.name,
+          province: loc.location,
+          image_url: loc.image_url || loc.img
+        })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        if (data.message === 'added') {
+          setSavedLocations(prev => [...prev, loc.name]);
+        } else {
+          setSavedLocations(prev => prev.filter(name => name !== loc.name));
+        }
+      }
+    } catch (err) {
+      console.error('Lỗi lưu địa điểm:', err);
+    }
+  };
 
   // ==== CHẾ ĐỘ 1: DANH MỤC ====
   // allSuggestions = toàn bộ địa điểm từ backend (tính từ Hà Nội)
@@ -396,7 +451,13 @@ function Suggestions() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {categoryResults.map((loc, idx) => (
                   <div key={loc.id || idx}>
-                    <LocationCard loc={loc} month={selectedMonth} onClick={() => setSelectedLocation(loc)} />
+                    <LocationCard 
+                      loc={loc} 
+                      month={selectedMonth} 
+                      onClick={() => setSelectedLocation(loc)} 
+                      isSaved={savedLocations.includes(loc.name)}
+                      onToggleSave={handleToggleSave}
+                    />
                   </div>
                 ))}
               </div>
@@ -439,7 +500,13 @@ function Suggestions() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {locationResults.map((loc, idx) => (
                   <div key={loc.id || idx}>
-                    <LocationCard loc={loc} month={selectedMonth} onClick={() => setSelectedLocation(loc)} />
+                    <LocationCard 
+                      loc={loc} 
+                      month={selectedMonth} 
+                      onClick={() => setSelectedLocation(loc)} 
+                      isSaved={savedLocations.includes(loc.name)}
+                      onToggleSave={handleToggleSave}
+                    />
                   </div>
                 ))}
               </div>
@@ -478,6 +545,19 @@ function Suggestions() {
                 <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-wider">
                   {dest.badge}
                 </div>
+                {/* Favorite Button */}
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleSave(dest);
+                  }}
+                  className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 hover:bg-black/60 transition-all group/heart hover:scale-110"
+                >
+                  <Heart 
+                    size={16} 
+                    className={`transition-colors ${savedLocations.includes(dest.name) ? 'text-red-500 fill-red-500' : 'text-white group-hover/heart:text-red-400'}`} 
+                  />
+                </button>
                 {/* Content */}
                 <div className="absolute bottom-0 left-0 p-5 w-full">
                   <div className="flex justify-between items-end mb-2">

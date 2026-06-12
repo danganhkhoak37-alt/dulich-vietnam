@@ -1,14 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Star, ChevronRight, User, Mail, Send, Mountain, Utensils, Tent, Eye, X, BookOpen } from 'lucide-react';
+import { MapPin, Star, ChevronRight, User, Mail, Send, Mountain, Utensils, Tent, Eye, X, BookOpen, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LocationDetailModal from '../components/LocationDetailModal';
+import AuthModal from '../components/AuthModal';
+import API_URL from '../config/api';
 
 function Home() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [showAllDestinations, setShowAllDestinations] = useState(false);
   const [selectedLandscape, setSelectedLandscape] = useState(null);
+  
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
+  const [savedLocations, setSavedLocations] = useState([]);
+
+  // Fetch saved locations
+  const fetchSavedLocations = async () => {
+    if (!user) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/saved-locations`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setSavedLocations(data.data.map(l => l.location_name));
+      }
+    } catch (err) {
+      console.error('Lỗi tải địa điểm yêu thích:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSavedLocations();
+  }, [user]);
+
+  const handleToggleSave = async (locTitle, locProvince, locImg) => {
+    if (!user) {
+      alert('Vui lòng đăng nhập để lưu địa điểm!');
+      setIsAuthOpen(true);
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/saved-locations/toggle`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          location_name: locTitle,
+          province: locProvince,
+          image_url: locImg
+        })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        if (data.message === 'added') {
+          setSavedLocations(prev => [...prev, locTitle]);
+        } else {
+          setSavedLocations(prev => prev.filter(name => name !== locTitle));
+        }
+      }
+    } catch (err) {
+      console.error('Lỗi lưu địa điểm:', err);
+    }
+  };
 
   const landscapes = [
     {
@@ -207,6 +267,7 @@ function Home() {
 
   return (
     <div className="w-full bg-[#0A241A]">
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} onAuthSuccess={(userData) => setUser(userData)} />
       {/* 1. HERO SECTION */}
       <section className="relative h-screen flex items-center justify-center text-center text-white overflow-hidden">
         <video
@@ -254,6 +315,21 @@ function Home() {
                 <motion.div layout key={item.title} initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -30, scale: 0.9 }} transition={{ duration: 0.6, delay: showAllDestinations && idx >= 3 ? (idx % 3) * 0.15 : 0, ease: "easeOut" }} className="group relative h-[450px] rounded-2xl overflow-hidden cursor-pointer border border-white/5 bg-[#112418] shadow-2xl hover:border-gold/50 hover:shadow-[0_10px_30px_rgba(212,175,55,0.2)] transition-all duration-500" onClick={() => setSelectedLandscape(item)}>
                   <img src={item.img} alt={item.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-500" />
+                  
+                  {/* Favorite Button */}
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleSave(item.title, item.location, item.img);
+                    }}
+                    className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 hover:bg-black/60 transition-all group/heart hover:scale-110"
+                  >
+                    <Heart 
+                      size={18} 
+                      className={`transition-colors ${savedLocations.includes(item.title) ? 'text-red-500 fill-red-500' : 'text-white group-hover/heart:text-red-400'}`} 
+                    />
+                  </button>
+
                   <div className="absolute bottom-0 left-0 w-full p-8 flex flex-col justify-end h-full text-white">
                     <div className="flex justify-between items-center mb-3">
                       <span className="flex items-center gap-1 text-xs font-bold bg-white/10 backdrop-blur-md px-3 py-1 rounded-full"><Eye size={12} className="text-gold" /> {item.rating}k</span>
@@ -294,9 +370,22 @@ function Home() {
               <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { delay: i * 0.2, duration: 0.6, ease: "easeOut" } } }} className="group flex flex-col bg-[#112418] rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl hover:border-gold/30 hover:shadow-[0_15px_40px_rgba(212,175,55,0.2)] transition-all duration-500 cursor-pointer" onClick={() => navigate('/guide', { state: { locationName: exp.title } })}>
                 <div className="relative h-[280px] overflow-hidden">
                   <img src={exp.img} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-90 group-hover:opacity-100" alt={exp.title} />
-                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-white text-[10px] uppercase tracking-widest font-bold px-4 py-2 rounded-full border border-white/10">
+                  <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-[10px] uppercase tracking-widest font-bold px-4 py-2 rounded-full border border-white/10">
                     Tháng {exp.monthStart} - {exp.monthEnd}
                   </div>
+                  {/* Favorite Button */}
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleSave(exp.title, exp.location || exp.theme, exp.img);
+                    }}
+                    className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 hover:bg-black/60 transition-all group/heart hover:scale-110"
+                  >
+                    <Heart 
+                      size={18} 
+                      className={`transition-colors ${savedLocations.includes(exp.title) ? 'text-red-500 fill-red-500' : 'text-white group-hover/heart:text-red-400'}`} 
+                    />
+                  </button>
                 </div>
                 <div className="p-8 flex-1 flex flex-col justify-between">
                   <div>
