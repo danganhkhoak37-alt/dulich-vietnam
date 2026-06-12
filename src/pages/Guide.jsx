@@ -258,7 +258,7 @@ function Guide() {
                     <div className="flex items-start gap-4">
                       <span className="text-2xl">{item.icon}</span>
                       <div>
-                        <p className="text-xs font-black uppercase tracking-widest mb-1 opacity-60">{item.label}</p>
+                        <p className={`text-xs font-black uppercase tracking-widest mb-1 ${item.color.split(' ')[1]}`}>{item.label}</p>
                         <p className="text-[#F5F2EB] text-sm leading-relaxed">{item.text || 'Đang cập nhật thông tin...'}</p>
                       </div>
                     </div>
