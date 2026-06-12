@@ -972,7 +972,7 @@ app.post('/api/auth/google', async (req, res) => {
       user = await db.get('SELECT * FROM users WHERE id=?', [r.lastID]);
     } else {
       await db.run('UPDATE users SET google_id=?,email=?,oauth_provider=?,avatar_url=? WHERE id=?',
-        [google_id, email || user.email || null, 'google', picture || user.avatar_url || null, user.id]);
+        [google_id, email || user.email || null, 'google', user.avatar_url || picture || null, user.id]);
       user = await db.get('SELECT * FROM users WHERE id=?', [user.id]);
     }
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
@@ -1016,7 +1016,7 @@ app.post('/api/auth/facebook', async (req, res) => {
       user = await db.get('SELECT * FROM users WHERE id=?', [r.lastID]);
     } else {
       await db.run('UPDATE users SET facebook_id=?,email=?,oauth_provider=?,avatar_url=? WHERE id=?',
-        [facebook_id, email || user.email, 'facebook', avatarUrl || user.avatar_url, user.id]);
+        [facebook_id, email || user.email, 'facebook', user.avatar_url || avatarUrl, user.id]);
       user = await db.get('SELECT * FROM users WHERE id=?', [user.id]);
     }
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });

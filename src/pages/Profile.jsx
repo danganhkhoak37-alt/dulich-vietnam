@@ -65,6 +65,7 @@ function Profile() {
       const data = await res.json();
       if (data.status === 'success') {
         setUser(u => ({ ...u, avatar_url: data.avatar_url }));
+        setFormData(f => ({ ...f, avatar_url: data.avatar_url }));
         const stored = JSON.parse(localStorage.getItem('user'));
         localStorage.setItem('user', JSON.stringify({ ...stored, avatar_url: data.avatar_url }));
         window.dispatchEvent(new Event('storage'));
@@ -93,6 +94,9 @@ function Profile() {
       const data = await res.json();
       if (data.status === 'success') {
         setUser(u => ({ ...u, cover_url: data.cover_url }));
+        setFormData(f => ({ ...f, cover_url: data.cover_url }));
+        const stored = JSON.parse(localStorage.getItem('user'));
+        localStorage.setItem('user', JSON.stringify({ ...stored, cover_url: data.cover_url }));
         showToast('✅ Đã cập nhật ảnh bìa!');
       }
     } catch (err) {
