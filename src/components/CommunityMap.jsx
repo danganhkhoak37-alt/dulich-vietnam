@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import React, { useState, useEffect, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import API_URL from '../config/api';
@@ -26,17 +26,34 @@ const createAvatarIcon = (avaUrl) => {
   return L.divIcon({
     className: 'custom-avatar-marker bg-transparent border-0',
     html: `
-      <div style="position: relative; width: 40px; height: 40px;">
-        <div style="width: 36px; height: 36px; border-radius: 50%; border: 2px solid #D4AF37; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.5); background: #112418; position: absolute; bottom: 0; left: 0;">
+      <div style="position: relative; width: 44px; height: 44px;">
+        <div style="width: 40px; height: 40px; border-radius: 50%; border: 2.5px solid #D4AF37; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: #112418; position: absolute; bottom: 0; left: 0;">
           <img src="${avaUrl?.startsWith('/') ? API_URL+avaUrl : (avaUrl || 'https://i.pravatar.cc/150')}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://i.pravatar.cc/150'"/>
         </div>
-        <!-- Chấm xanh báo online -->
-        <div style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; background-color: #22c55e; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 5px rgba(0,0,0,0.5); animation: pulse 2s infinite;"></div>
+        <div style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; background-color: #22c55e; border-radius: 50%; border: 2px solid #0A241A; box-shadow: 0 0 8px rgba(34,197,94,0.6); animation: markerPulse 2s infinite;"></div>
       </div>
     `,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-    popupAnchor: [0, -20]
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+    popupAnchor: [0, -22]
+  });
+};
+
+// Icon cho vị trí đang chọn (preview)
+const createPinPreviewIcon = () => {
+  return L.divIcon({
+    className: 'pin-preview-marker bg-transparent border-0',
+    html: `
+      <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+        <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #D4AF37 0%, #F5D76E 100%); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 6px 20px rgba(212,175,55,0.5); animation: pinBounce 0.6s ease-out;">
+          <div style="width: 16px; height: 16px; background: #0A241A; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+        </div>
+        <div style="width: 8px; height: 8px; background: rgba(212,175,55,0.3); border-radius: 50%; margin-top: 4px; animation: pinShadow 0.6s ease-out;"></div>
+      </div>
+    `,
+    iconSize: [36, 50],
+    iconAnchor: [18, 50],
+    popupAnchor: [0, -50]
   });
 };
 
@@ -59,14 +76,35 @@ const MAP_STYLES = {
   street: { name: 'Ngày (Street Green)', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' }
 };
 
-// Component để update tilelayer mượt mà
 function MapStyleUpdater({ styleUrl }) {
   return <TileLayer attribution='&copy; <a href="https://carto.com/">CartoDB</a> / OSM' url={styleUrl} />;
 }
 
-// Hàm lấy User Login
 function getLoggedInUser() {
   try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
+}
+
+// Component xử lý click trên bản đồ
+function MapClickHandler({ onMapClick, isPinning }) {
+  useMapEvents({
+    click(e) {
+      if (isPinning) {
+        onMapClick(e.latlng);
+      }
+    }
+  });
+  return null;
+}
+
+// Component fly to vị trí
+function FlyToLocation({ position }) {
+  const map = useMap();
+  useEffect(() => {
+    if (position) {
+      map.flyTo(position, 12, { duration: 1.5 });
+    }
+  }, [position, map]);
+  return null;
 }
 
 function CommunityMap() {
@@ -74,12 +112,19 @@ function CommunityMap() {
   const [mapStyleKey, setMapStyleKey] = useState('dark');
   const [users, setUsers] = useState(MOCK_USERS);
   
+  // Pin state
+  const [isPinning, setIsPinning] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [myLat, setMyLat] = useState(null);
-  const [myLng, setMyLng] = useState(null);
+  const [pinPosition, setPinPosition] = useState(null);
   const [myStatus, setMyStatus] = useState('');
   const [myTags, setMyTags] = useState('');
   const [isLocating, setIsLocating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [locationName, setLocationName] = useState('');
+  const [flyTarget, setFlyTarget] = useState(null);
+
+  // Existing pin
+  const [myExistingPin, setMyExistingPin] = useState(null);
 
   const loggedInUser = getLoggedInUser();
 
@@ -90,6 +135,12 @@ function CommunityMap() {
       if (data.status === 'success') {
         const activeRealUsers = data.data.filter(u => u.lat && u.lng);
         setUsers([...MOCK_USERS, ...activeRealUsers]);
+        
+        // Check if current user already has a pin
+        if (loggedInUser) {
+          const myPin = activeRealUsers.find(u => u.id === loggedInUser.id);
+          if (myPin) setMyExistingPin(myPin);
+        }
       }
     } catch (e) { console.error('Lỗi fetch map users', e); }
   };
@@ -103,6 +154,52 @@ function CommunityMap() {
     setTimeout(() => setToast(''), 3000);
   };
 
+  // Reverse geocode to get location name
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1&accept-language=vi`);
+      const data = await res.json();
+      if (data && data.address) {
+        const parts = [];
+        if (data.address.city || data.address.town || data.address.village) {
+          parts.push(data.address.city || data.address.town || data.address.village);
+        }
+        if (data.address.state || data.address.county) {
+          parts.push(data.address.state || data.address.county);
+        }
+        return parts.length > 0 ? parts.join(', ') : (data.display_name || '');
+      }
+      return '';
+    } catch {
+      return '';
+    }
+  };
+
+  // Bắt đầu chế độ ghim (click trên map)
+  const startPinMode = () => {
+    if (!loggedInUser) {
+      alert('Vui lòng đăng nhập để ghim vị trí!');
+      return;
+    }
+    setIsPinning(true);
+    setPinPosition(null);
+    setToast('👆 Click vào bản đồ để chọn vị trí ghim!');
+    setTimeout(() => setToast(''), 4000);
+  };
+
+  // Xử lý click trên map
+  const handleMapClick = useCallback(async (latlng) => {
+    setPinPosition([latlng.lat, latlng.lng]);
+    setFlyTarget([latlng.lat, latlng.lng]);
+    setIsPinning(false);
+    
+    // Reverse geocode
+    const name = await reverseGeocode(latlng.lat, latlng.lng);
+    setLocationName(name);
+    setShowLocationModal(true);
+  }, []);
+
+  // Ghim bằng GPS
   const requestGPS = () => {
     if (!loggedInUser) {
       alert('Vui lòng đăng nhập để ghim vị trí!');
@@ -114,10 +211,15 @@ function CommunityMap() {
     }
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setMyLat(position.coords.latitude);
-        setMyLng(position.coords.longitude);
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setPinPosition([lat, lng]);
+        setFlyTarget([lat, lng]);
         setIsLocating(false);
+        
+        const name = await reverseGeocode(lat, lng);
+        setLocationName(name);
         setShowLocationModal(true);
       },
       (error) => {
@@ -129,8 +231,10 @@ function CommunityMap() {
     );
   };
 
+  // Lưu vị trí
   const handleSaveLocation = async () => {
-    if (!loggedInUser) return;
+    if (!loggedInUser || !pinPosition) return;
+    setIsSaving(true);
     try {
       const tagsArray = myTags.split(',').map(t => t.trim()).filter(t => t);
       const res = await fetch(`${API_URL}/api/map/location`, {
@@ -140,8 +244,8 @@ function CommunityMap() {
           'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
         },
         body: JSON.stringify({
-          lat: myLat,
-          lng: myLng,
+          lat: pinPosition[0],
+          lng: pinPosition[1],
           status: myStatus,
           tags: tagsArray
         })
@@ -149,7 +253,11 @@ function CommunityMap() {
       const data = await res.json();
       if (data.status === 'success') {
         setShowLocationModal(false);
-        setToast('Đã ghim vị trí thành công!');
+        setPinPosition(null);
+        setMyStatus('');
+        setMyTags('');
+        setLocationName('');
+        setToast('✅ Đã ghim vị trí thành công!');
         setTimeout(() => setToast(''), 3000);
         fetchMapUsers();
       } else {
@@ -158,12 +266,60 @@ function CommunityMap() {
     } catch (e) {
       console.error(e);
       alert('Lỗi kết nối máy chủ');
+    } finally {
+      setIsSaving(false);
     }
   };
 
+  // Xóa ghim
+  const handleRemovePin = async () => {
+    if (!loggedInUser) return;
+    if (!window.confirm('Bạn có chắc muốn xóa ghim vị trí?')) return;
+    try {
+      const res = await fetch(`${API_URL}/api/map/location`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        }
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setMyExistingPin(null);
+        setToast('🗑️ Đã xóa ghim vị trí');
+        setTimeout(() => setToast(''), 3000);
+        fetchMapUsers();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleCancelPin = () => {
+    setShowLocationModal(false);
+    setPinPosition(null);
+    setIsPinning(false);
+    setMyStatus('');
+    setMyTags('');
+    setLocationName('');
+  };
+
   return (
-    <div className="w-full h-[600px] rounded-[1.5rem] overflow-hidden border border-white/5 relative bg-[#112418]">
+    <div className={`w-full h-[600px] rounded-[1.5rem] overflow-hidden border ${isPinning ? 'border-[#D4AF37]/60 shadow-[0_0_30px_rgba(212,175,55,0.15)]' : 'border-white/5'} relative bg-[#112418] transition-all duration-500`}>
       
+      {/* Pin Mode Banner */}
+      {isPinning && (
+        <div className="absolute top-0 left-0 right-0 z-[450] bg-gradient-to-r from-[#D4AF37] via-[#F5D76E] to-[#D4AF37] text-black text-center py-2.5 px-4 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg" style={{ animation: 'slideDown 0.3s ease-out' }}>
+          <span className="animate-bounce text-base">📍</span>
+          <span>Click vào bản đồ để chọn vị trí ghim</span>
+          <button 
+            onClick={() => { setIsPinning(false); setToast(''); }}
+            className="ml-4 bg-black/20 hover:bg-black/40 px-3 py-1 rounded-full text-[10px] font-bold transition-all"
+          >
+            ✕ Hủy
+          </button>
+        </div>
+      )}
+
       {/* Map Header Overlay */}
       <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2 items-end">
         
@@ -180,28 +336,94 @@ function CommunityMap() {
           </select>
         </div>
 
-        {/* Pin Location Button */}
-        <button 
-          onClick={requestGPS}
-          disabled={isLocating}
-          className="bg-[#D4AF37] text-black px-4 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-white transition-all uppercase tracking-widest flex items-center gap-2"
-        >
-          {isLocating ? '⏳ Đang định vị...' : '📍 Ghim vị trí của tôi'}
-        </button>
+        {/* Pin Buttons Group */}
+        <div className="flex flex-col gap-1.5">
+          {/* GPS Pin */}
+          <button 
+            onClick={requestGPS}
+            disabled={isLocating || isPinning}
+            className="bg-[#D4AF37] text-black px-4 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-white transition-all uppercase tracking-widest flex items-center gap-2 disabled:opacity-50"
+          >
+            {isLocating ? (
+              <>
+                <span className="animate-spin">⏳</span> Đang định vị...
+              </>
+            ) : (
+              <>📍 Ghim bằng GPS</>
+            )}
+          </button>
 
+          {/* Click Pin */}
+          <button 
+            onClick={startPinMode}
+            disabled={isLocating || isPinning}
+            className={`px-4 py-2 rounded-xl text-xs font-black shadow-lg transition-all uppercase tracking-widest flex items-center gap-2 ${
+              isPinning 
+                ? 'bg-white text-black ring-2 ring-[#D4AF37]' 
+                : 'bg-[#0A241A]/90 backdrop-blur-md text-[#D4AF37] border border-[#D4AF37]/40 hover:bg-[#D4AF37] hover:text-black'
+            } disabled:opacity-50`}
+          >
+            👆 Click trên bản đồ
+          </button>
+
+          {/* Remove pin (if exists) */}
+          {myExistingPin && (
+            <button 
+              onClick={handleRemovePin}
+              className="bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-red-500/40 transition-all uppercase tracking-widest flex items-center gap-2"
+            >
+              🗑️ Xóa ghim
+            </button>
+          )}
+        </div>
+
+      </div>
+
+      {/* User count badge */}
+      <div className="absolute top-4 left-4 z-[400] bg-[#0A241A]/90 backdrop-blur-md px-3 py-2 rounded-xl border border-white/10 flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+        <span className="text-xs text-white/70 font-bold">{users.length} phượt thủ trên bản đồ</span>
       </div>
 
       <MapContainer 
         center={[16.0, 108.0]} 
         zoom={6} 
         scrollWheelZoom={true}
-        className="w-full h-full z-0"
+        className={`w-full h-full z-0 ${isPinning ? 'cursor-crosshair' : ''}`}
       >
         <MapStyleUpdater styleUrl={MAP_STYLES[mapStyleKey].url} />
+        <MapClickHandler onMapClick={handleMapClick} isPinning={isPinning} />
+        {flyTarget && <FlyToLocation position={flyTarget} />}
 
         {/* Hoàng Sa & Trường Sa Labels */}
         <Marker position={[16.5, 112.0]} icon={HoangSaIcon} interactive={false} />
         <Marker position={[9.5, 113.0]} icon={TruongSaIcon} interactive={false} />
+
+        {/* Preview pin (khi đang chọn vị trí) */}
+        {pinPosition && (
+          <Marker 
+            position={pinPosition} 
+            icon={createPinPreviewIcon()}
+            draggable={true}
+            eventHandlers={{
+              dragend: async (e) => {
+                const marker = e.target;
+                const pos = marker.getLatLng();
+                setPinPosition([pos.lat, pos.lng]);
+                const name = await reverseGeocode(pos.lat, pos.lng);
+                setLocationName(name);
+              }
+            }}
+          >
+            <Popup className="custom-popup">
+              <div className="p-1 text-center">
+                <p className="text-sm font-bold text-[#D4AF37] mb-1">📍 Vị trí bạn chọn</p>
+                {locationName && <p className="text-xs text-white/60">{locationName}</p>}
+                <p className="text-[10px] text-white/40 mt-1 italic">Kéo để điều chỉnh</p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
 
         {/* Users */}
         {users.map(user => (
@@ -211,9 +433,9 @@ function CommunityMap() {
             icon={createAvatarIcon(user.ava)}
           >
             <Popup className="custom-popup">
-              <div className="p-1 min-w-[200px]">
-                <div className="flex items-center gap-3 mb-2">
-                  <img src={user.ava?.startsWith('/') ? API_URL+user.ava : (user.ava || 'https://i.pravatar.cc/150')} className="w-10 h-10 rounded-full object-cover border border-[#D4AF37]/50" alt="ava" onError={(e) => e.target.src='https://i.pravatar.cc/150'}/>
+              <div className="p-1 min-w-[220px]">
+                <div className="flex items-center gap-3 mb-3">
+                  <img src={user.ava?.startsWith('/') ? API_URL+user.ava : (user.ava || 'https://i.pravatar.cc/150')} className="w-11 h-11 rounded-full object-cover border-2 border-[#D4AF37]/50" alt="ava" onError={(e) => e.target.src='https://i.pravatar.cc/150'}/>
                   <div>
                     <h4 className="text-sm font-bold text-[#F5F2EB] m-0 leading-tight">{user.name}</h4>
                     <span className="text-[10px] text-green-400 font-bold flex items-center gap-1">
@@ -222,23 +444,27 @@ function CommunityMap() {
                   </div>
                 </div>
                 
-                <p className="text-xs text-white/80 mb-2 leading-relaxed italic">
-                  "{user.status}"
-                </p>
+                {user.status && (
+                  <p className="text-xs text-white/80 mb-3 leading-relaxed italic bg-white/5 rounded-lg p-2">
+                    "{user.status}"
+                  </p>
+                )}
                 
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {user.tags.map((tag, idx) => (
-                    <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded-md bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                {user.tags && user.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {user.tags.map((tag, idx) => (
+                      <span key={idx} className="text-[9px] px-2 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/20 font-bold">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 
                 <button 
                   onClick={() => handleConnect(user.name)}
-                  className="w-full bg-[#D4AF37] text-black text-xs font-bold py-1.5 rounded-full hover:bg-white transition-colors"
+                  className="w-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-black text-xs font-black py-2 rounded-full hover:shadow-lg hover:shadow-[#D4AF37]/20 transition-all uppercase tracking-wider"
                 >
-                  Kết nối ngay
+                  🤝 Kết nối ngay
                 </button>
               </div>
             </Popup>
@@ -248,43 +474,90 @@ function CommunityMap() {
 
       {/* Location Modal */}
       {showLocationModal && (
-        <div className="absolute inset-0 z-[500] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0A241A] w-full max-w-sm rounded-[1.5rem] border border-[#D4AF37]/30 p-6 shadow-2xl">
-            <h3 className="text-[#D4AF37] font-heading font-bold text-xl mb-4 text-center">📍 Cập nhật vị trí</h3>
-            <div className="space-y-4">
+        <div className="absolute inset-0 z-[500] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+          <div className="bg-[#0A241A] w-full max-w-sm rounded-[1.5rem] border border-[#D4AF37]/30 shadow-2xl shadow-black/50 overflow-hidden" style={{ animation: 'modalSlide 0.4s ease-out' }}>
+            
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#D4AF37]/20 via-[#D4AF37]/10 to-transparent p-6 pb-4 border-b border-white/5">
+              <h3 className="text-[#D4AF37] font-bold text-lg flex items-center gap-2">
+                📍 Ghim vị trí của bạn
+              </h3>
+              {locationName && (
+                <p className="text-xs text-white/50 mt-1 flex items-center gap-1">
+                  <span>🗺️</span> {locationName}
+                </p>
+              )}
+              {pinPosition && (
+                <p className="text-[10px] text-white/30 mt-1 font-mono">
+                  {pinPosition[0].toFixed(4)}°N, {pinPosition[1].toFixed(4)}°E
+                </p>
+              )}
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
               <div>
-                <label className="text-xs text-white/60 font-bold block mb-1">Trạng thái hiện tại</label>
+                <label className="text-xs text-white/60 font-bold block mb-1.5 flex items-center gap-1">
+                  💬 Trạng thái hiện tại
+                </label>
                 <input 
                   type="text" 
                   value={myStatus} 
                   onChange={e => setMyStatus(e.target.value)} 
-                  placeholder="VD: Đang ở Đà Nẵng tìm bạn..."
-                  className="w-full bg-[#112418] border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs outline-none focus:border-[#D4AF37]/50"
+                  placeholder="VD: Đang ở Đà Nẵng tìm bạn đi ăn..."
+                  className="w-full bg-[#112418] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all placeholder-white/20"
+                  autoFocus
                 />
               </div>
               <div>
-                <label className="text-xs text-white/60 font-bold block mb-1">Hashtag sở thích</label>
+                <label className="text-xs text-white/60 font-bold block mb-1.5 flex items-center gap-1">
+                  🏷️ Hashtag sở thích
+                </label>
                 <input 
                   type="text" 
                   value={myTags} 
                   onChange={e => setMyTags(e.target.value)} 
-                  placeholder="VD: #Phượt, #Cafe (cách nhau bởi dấu phẩy)"
-                  className="w-full bg-[#112418] border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs outline-none focus:border-[#D4AF37]/50"
+                  placeholder="VD: #Phượt, #Cafe, #Biển (cách bởi dấu phẩy)"
+                  className="w-full bg-[#112418] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all placeholder-white/20"
                 />
+                {myTags && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {myTags.split(',').map((t, i) => t.trim() && (
+                      <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/20">
+                        {t.trim()}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
+
+              {/* Drag hint */}
+              <div className="bg-white/5 rounded-xl p-3 flex items-start gap-2">
+                <span className="text-base">💡</span>
+                <p className="text-[11px] text-white/40 leading-relaxed">
+                  Bạn có thể <strong className="text-white/60">kéo thả</strong> ghim trên bản đồ để điều chỉnh chính xác vị trí trước khi lưu.
+                </p>
+              </div>
+
               <div className="flex gap-3 pt-2">
                 <button 
-                  onClick={() => setShowLocationModal(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-white/20 text-white/60 text-xs font-bold hover:bg-white/5 transition-all"
+                  onClick={handleCancelPin}
+                  className="flex-1 py-3 rounded-xl border border-white/15 text-white/50 text-xs font-bold hover:bg-white/5 hover:text-white/70 transition-all"
                 >
                   Hủy
                 </button>
                 <button 
                   onClick={handleSaveLocation}
-                  disabled={!myStatus.trim()}
-                  className="flex-1 bg-[#D4AF37] text-black py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-white disabled:opacity-50 transition-all"
+                  disabled={!myStatus.trim() || isSaving}
+                  className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-black py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-lg hover:shadow-[#D4AF37]/20 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
                 >
-                  Lưu & Lên sóng
+                  {isSaving ? (
+                    <>
+                      <span className="animate-spin">⏳</span> Đang lưu...
+                    </>
+                  ) : (
+                    <>🚀 Lưu & Lên sóng</>
+                  )}
                 </button>
               </div>
             </div>
@@ -294,12 +567,15 @@ function CommunityMap() {
 
       {/* Toast Notification */}
       {toast && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[600] bg-[#0D2D1F] border border-[#D4AF37]/50 text-[#D4AF37] px-4 py-2 rounded-full text-xs font-bold shadow-2xl flex items-center gap-2 animate-bounce">
-          <span>🤝</span> {toast}
+        <div 
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[600] bg-[#0D2D1F] border border-[#D4AF37]/50 text-[#D4AF37] px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl flex items-center gap-2"
+          style={{ animation: 'toastSlide 0.4s ease-out' }}
+        >
+          {toast}
         </div>
       )}
 
-      {/* CSS Overrides for Leaflet Popup in Dark Mode */}
+      {/* CSS Overrides */}
       <style dangerouslySetInnerHTML={{__html: `
         .leaflet-popup-content-wrapper {
           background: #0A241A !important;
@@ -320,10 +596,41 @@ function CommunityMap() {
         .leaflet-container a.leaflet-popup-close-button:hover {
           opacity: 1;
         }
-        @keyframes pulse {
+        .cursor-crosshair .leaflet-container {
+          cursor: crosshair !important;
+        }
+        .leaflet-grab {
+          cursor: inherit;
+        }
+        @keyframes markerPulse {
           0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
           70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
           100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        @keyframes pinBounce {
+          0% { transform: rotate(-45deg) scale(0) translateY(-20px); }
+          60% { transform: rotate(-45deg) scale(1.15); }
+          100% { transform: rotate(-45deg) scale(1); }
+        }
+        @keyframes pinShadow {
+          0% { transform: scale(0); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes modalSlide {
+          from { opacity: 0; transform: translateY(20px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-100%); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes toastSlide {
+          from { opacity: 0; transform: translate(-50%, 20px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
         }
       `}} />
     </div>

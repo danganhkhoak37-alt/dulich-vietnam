@@ -2309,6 +2309,64 @@ app.post('/api/ai/guide-ask', async (req, res) => {
 });
 
 // ============================================================
+// MAP APIs — Ghim vị trí người dùng trên bản đồ
+// ============================================================
+
+// Lấy tất cả users đã ghim vị trí
+app.get('/api/map/users', async (req, res) => {
+  try {
+    const users = await db.all(`
+      SELECT id, full_name as name, avatar_url as ava, 
+             map_lat as lat, map_lng as lng, 
+             map_status as status, map_tags as tags
+      FROM users 
+      WHERE map_lat IS NOT NULL AND map_lng IS NOT NULL
+    `);
+    // Parse tags from JSON string
+    const parsed = users.map(u => ({
+      ...u,
+      tags: u.tags ? JSON.parse(u.tags) : []
+    }));
+    res.json({ status: 'success', data: parsed });
+  } catch (err) {
+    console.error('Map Users Error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Ghim / cập nhật vị trí của user
+app.post('/api/map/location', authMiddleware, async (req, res) => {
+  const { lat, lng, status, tags } = req.body;
+  const userId = req.user.id;
+  if (!lat || !lng) return res.status(400).json({ status: 'error', message: 'Thiếu toạ độ' });
+  try {
+    const tagsJson = JSON.stringify(tags || []);
+    await db.run(
+      'UPDATE users SET map_lat=?, map_lng=?, map_status=?, map_tags=? WHERE id=?',
+      [lat, lng, status || '', tagsJson, userId]
+    );
+    res.json({ status: 'success', message: 'Đã ghim vị trí thành công!' });
+  } catch (err) {
+    console.error('Map Location Error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Xóa ghim vị trí
+app.delete('/api/map/location', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    await db.run(
+      'UPDATE users SET map_lat=NULL, map_lng=NULL, map_status=NULL, map_tags=NULL WHERE id=?',
+      [userId]
+    );
+    res.json({ status: 'success', message: 'Đã xóa ghim vị trí' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// ============================================================
 // PRIVACY & DATA DELETION (Facebook yêu cầu)
 // ============================================================
 
