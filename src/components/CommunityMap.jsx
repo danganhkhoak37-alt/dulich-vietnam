@@ -12,15 +12,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const MOCK_USERS = [
-  { id: 'mock_1', name: 'Phượt Thủ 9x', ava: 'https://i.pravatar.cc/150?img=11', lat: 16.0544, lng: 108.2022, status: 'Đang ở Đà Nẵng tìm bạn đi đèo Hải Vân', tags: ['#Phượt_xe_máy', '#Khám_phá'] },
-  { id: 'mock_2', name: 'Yêu Bếp & Đi', ava: 'https://i.pravatar.cc/150?img=5', lat: 21.0285, lng: 105.8542, status: 'Food tour Hà Nội, ai đi chung không?', tags: ['#Du_lịch_ẩm_thực', '#Hà_Nội'] },
-  { id: 'mock_3', name: 'Lang Thang VN', ava: 'https://i.pravatar.cc/150?img=33', lat: 11.9404, lng: 108.4583, status: 'Đà Lạt lạnh quá, cần bạn cafe', tags: ['#Chụp_ảnh', '#Chill'] },
-  { id: 'mock_4', name: 'Biển Xanh', ava: 'https://i.pravatar.cc/150?img=12', lat: 10.2899, lng: 103.9840, status: 'Phú Quốc vẫy gọi, lặn ngắm san hô!', tags: ['#Biển_đảo', '#Mùa_hè'] },
-  { id: 'mock_5', name: 'Núi Rừng', ava: 'https://i.pravatar.cc/150?img=68', lat: 22.3363, lng: 103.8438, status: 'Sapa mờ sương, săn mây Fanxipan', tags: ['#Săn_mây', '#Trekking'] },
-  { id: 'mock_6', name: 'Gió Biển', ava: 'https://i.pravatar.cc/150?img=47', lat: 15.8801, lng: 108.3380, status: 'Thả đèn lồng ở Hội An', tags: ['#Phố_cổ', '#Văn_hoá'] },
-  { id: 'mock_7', name: 'Đảo Xa', ava: 'https://i.pravatar.cc/150?img=18', lat: 8.6833, lng: 106.6000, status: 'Đang ở Côn Đảo, biển xanh cát trắng', tags: ['#Côn_Đảo', '#Bình_yên'] },
-];
+import ChatDrawer from './ChatDrawer';
 
 const createAvatarIcon = (avaUrl) => {
   return L.divIcon({
@@ -110,7 +102,9 @@ function FlyToLocation({ position }) {
 function CommunityMap() {
   const [toast, setToast] = useState('');
   const [mapStyleKey, setMapStyleKey] = useState('dark');
-  const [users, setUsers] = useState(MOCK_USERS);
+  const [users, setUsers] = useState([]);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatFriendId, setChatFriendId] = useState(null);
   
   // Pin state
   const [isPinning, setIsPinning] = useState(false);
@@ -137,7 +131,7 @@ function CommunityMap() {
       const data = await res.json();
       if (data.status === 'success') {
         const activeRealUsers = data.data.filter(u => u.lat && u.lng);
-        setUsers([...MOCK_USERS, ...activeRealUsers]);
+        setUsers(activeRealUsers);
         
         // Check if current user already has a pin
         if (loggedInUser) {
@@ -156,13 +150,6 @@ function CommunityMap() {
   const handleConnect = async (user) => {
     if (!loggedInUser) {
       alert('Vui lòng đăng nhập để kết nối!');
-      return;
-    }
-    // Mock users can't be connected
-    if (String(user.id).startsWith('mock_')) {
-      setToast(`Đã gửi lời mời kết nối đến ${user.name}!`);
-      setConnectionStatuses(prev => ({ ...prev, [user.id]: 'pending' }));
-      setTimeout(() => setToast(''), 3000);
       return;
     }
     if (user.id === loggedInUser.id) {
@@ -201,7 +188,7 @@ function CommunityMap() {
 
   // Fetch connection status for a specific user when popup opens
   const fetchConnectionStatus = async (userId) => {
-    if (!loggedInUser || String(userId).startsWith('mock_') || userId === loggedInUser.id) return;
+    if (!loggedInUser || userId === loggedInUser.id) return;
     if (connectionStatuses[userId]) return; // already fetched
     try {
       const res = await fetch(`${API_URL}/api/connections/status/${userId}`, {
@@ -529,8 +516,16 @@ function CommunityMap() {
                     📍 Đây là bạn
                   </div>
                 ) : connStatus === 'accepted' ? (
-                  <div className="w-full text-center text-xs text-green-400 py-2 bg-green-500/10 rounded-full font-black border border-green-500/20">
-                    🤝 Đã kết nối
+                  <div className="flex gap-2 w-full">
+                    <button 
+                      onClick={() => { setChatFriendId(user.id); setChatOpen(true); }}
+                      className="flex-1 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20 text-xs font-black py-2 rounded-full hover:bg-[#D4AF37]/20 transition-all text-center tracking-wider"
+                    >
+                      💬 Nhắn tin
+                    </button>
+                    <div className="flex-1 text-center text-xs text-green-400 py-2 bg-green-500/10 rounded-full font-black border border-green-500/20">
+                      🤝 Đã kết nối
+                    </div>
                   </div>
                 ) : connStatus === 'pending' ? (
                   <div className="w-full text-center text-xs text-[#D4AF37] py-2 bg-[#D4AF37]/10 rounded-full font-bold border border-[#D4AF37]/20">
@@ -716,6 +711,12 @@ function CommunityMap() {
           to { opacity: 1; transform: translate(-50%, 0); }
         }
       `}} />
+      {/* Chat Drawer */}
+      <ChatDrawer
+        isOpen={chatOpen}
+        onClose={() => { setChatOpen(false); setChatFriendId(null); }}
+        initialFriendId={chatFriendId}
+      />
     </div>
   );
 }
