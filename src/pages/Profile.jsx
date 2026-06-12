@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import API_URL from '../config/api';
 
 const RANK_SYSTEM = [
@@ -23,7 +23,7 @@ function getRankProgress(postCount) {
 }
 
 const DEFAULT_COVER = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1200';
-const TABS = ['Bài Viết', 'Đã Lưu', 'Thống Kê'];
+const TABS = ['Bài Viết', 'Đã Lưu', 'Lời Mời', 'Bạn Bè', 'Thống Kê'];
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -36,7 +36,12 @@ function Profile() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [toast, setToast] = useState('');
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [friends, setFriends] = useState([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [respondingId, setRespondingId] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const loggedInUser = JSON.parse(localStorage.getItem('user'));
 
   const showToast = (msg) => {
@@ -98,6 +103,10 @@ function Profile() {
 
   useEffect(() => {
     if (!loggedInUser) { navigate('/'); return; }
+    // Check URL param for tab
+    const tabParam = searchParams.get('tab');
+    if (tabParam && TABS.includes(tabParam)) setActiveTab(tabParam);
+
     fetch(`${API_URL}/api/profile/${loggedInUser.id}`)
       .then(r => r.json()).then(data => { 
         if (!data.error && data.id) {
@@ -114,7 +123,71 @@ function Profile() {
       .then(r => r.json()).then(data => {
         if (Array.isArray(data)) setSavedPosts(data);
       }).catch(() => {});
+    // Fetch connections data
+    fetchPendingRequests();
+    fetchFriends();
   }, []);
+
+  const fetchPendingRequests = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/connections/pending`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` }
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setPendingRequests(data.data);
+        setPendingCount(data.data.length);
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchFriends = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/connections/friends`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` }
+      });
+      const data = await res.json();
+      if (data.status === 'success') setFriends(data.data);
+    } catch (e) { console.error(e); }
+  };
+
+  const handleRespondConnection = async (connectionId, action) => {
+    setRespondingId(connectionId);
+    try {
+      const res = await fetch(`${API_URL}/api/connections/respond`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify({ connection_id: connectionId, action })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        showToast(action === 'accept' ? '✅ Đã chấp nhận kết nối!' : '❌ Đã từ chối lời mời.');
+        fetchPendingRequests();
+        if (action === 'accept') fetchFriends();
+      } else {
+        showToast('❌ ' + (data.message || 'Lỗi'));
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('❌ Lỗi kết nối máy chủ');
+    } finally {
+      setRespondingId(null);
+    }
+  };
+
+  function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    const utcDateStr = dateStr.endsWith('Z') ? dateStr : dateStr.replace(' ', 'T') + 'Z';
+    const diff = Math.floor((Date.now() - new Date(utcDateStr)) / 1000);
+    if (diff < 0) return 'Vừa xong';
+    if (diff < 60) return `${diff} giây trước`;
+    if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
+    return `${Math.floor(diff / 86400)} ngày trước`;
+  }
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -326,14 +399,19 @@ function Profile() {
           </AnimatePresence>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-[#0D2D1F] p-1 rounded-xl border border-white/5 mb-6">
+          <div className="flex gap-1 bg-[#0D2D1F] p-1 rounded-xl border border-white/5 mb-6 overflow-x-auto">
             {TABS.map(tab => (
               <button key={tab} onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                className={`relative flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap px-3 ${
                   activeTab === tab ? 'bg-[#D4AF37] text-black' : 'text-white/40 hover:text-white'
                 }`}
               >
                 {tab}
+                {tab === 'Lời Mời' && pendingCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                    {pendingCount}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -400,7 +478,7 @@ function Profile() {
                       { label: 'Tổng bài viết', value: user.post_count || posts.length, icon: '📝', color: 'text-blue-400' },
                       { label: 'Tổng lượt thích', value: totalLikes, icon: '❤️', color: 'text-red-400' },
                       { label: 'Bài đã lưu', value: savedPosts.length, icon: '🔖', color: 'text-[#D4AF37]' },
-                      { label: 'Cấp độ hiện tại', value: rank.name, icon: rank.icon, color: 'text-green-400' },
+                      { label: 'Bạn bè', value: friends.length, icon: '🤝', color: 'text-green-400' },
                     ].map((s, i) => (
                       <div key={i} className="bg-[#0D2D1F] rounded-2xl p-6 border border-white/5">
                         <div className="text-2xl mb-2">{s.icon}</div>
@@ -430,6 +508,130 @@ function Profile() {
                       })}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* LỜI MỜI KẾT NỐI */}
+              {activeTab === 'Lời Mời' && (
+                <div className="space-y-4">
+                  {pendingRequests.length === 0 ? (
+                    <div className="text-center py-16 text-white/30">
+                      <div className="text-4xl mb-3">🔔</div>
+                      <p>Không có lời mời kết nối nào.</p>
+                      <p className="text-xs mt-1">Khi ai đó gửi lời mời từ bản đồ, bạn sẽ thấy ở đây!</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-white/60 text-xs font-black uppercase tracking-widest">
+                          🔔 {pendingRequests.length} lời mời đang chờ
+                        </h3>
+                      </div>
+                      {pendingRequests.map(req => (
+                        <motion.div
+                          key={req.connection_id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="bg-[#0D2D1F] rounded-2xl p-5 border border-[#D4AF37]/20 hover:border-[#D4AF37]/40 transition-all"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="relative">
+                              <img
+                                src={req.avatar_url?.startsWith('/') ? `${API_URL}${req.avatar_url}` : (req.avatar_url || 'https://i.pravatar.cc/150')}
+                                alt="ava"
+                                className="w-14 h-14 rounded-full object-cover border-2 border-[#D4AF37]/30"
+                                onError={(e) => { e.target.src = 'https://i.pravatar.cc/150'; }}
+                              />
+                              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#D4AF37] rounded-full flex items-center justify-center text-[8px]">🤝</div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-[#F5F2EB] text-sm truncate">{req.full_name}</h4>
+                              <div className="flex items-center gap-2 text-[10px] text-white/40 mt-0.5">
+                                {req.location && <span>📍 {req.location}</span>}
+                                <span>· {timeAgo(req.created_at)}</span>
+                              </div>
+                              {req.map_status && (
+                                <p className="text-xs text-white/50 mt-1 italic truncate">"{req.map_status}"</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2 mt-4">
+                            <button
+                              onClick={() => handleRespondConnection(req.connection_id, 'accept')}
+                              disabled={respondingId === req.connection_id}
+                              className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-black py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-lg hover:shadow-[#D4AF37]/20 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
+                            >
+                              {respondingId === req.connection_id ? <span className="animate-pulse">⏳</span> : '✅'} Chấp nhận
+                            </button>
+                            <button
+                              onClick={() => handleRespondConnection(req.connection_id, 'reject')}
+                              disabled={respondingId === req.connection_id}
+                              className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-white/15 text-white/50 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
+                            >
+                              ❌ Từ chối
+                            </button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* BẠN BÈ */}
+              {activeTab === 'Bạn Bè' && (
+                <div className="space-y-4">
+                  {friends.length === 0 ? (
+                    <div className="text-center py-16 text-white/30">
+                      <div className="text-4xl mb-3">🤝</div>
+                      <p>Chưa có bạn bè nào.</p>
+                      <p className="text-xs mt-1">Hãy ghim vị trí trên bản đồ để kết nối với phượt thủ khác!</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-white/60 text-xs font-black uppercase tracking-widest">
+                          🤝 {friends.length} bạn bè
+                        </h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {friends.map((friend, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                            className="bg-[#0D2D1F] rounded-2xl p-4 border border-white/5 hover:border-green-500/20 transition-all group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <img
+                                  src={friend.avatar_url?.startsWith('/') ? `${API_URL}${friend.avatar_url}` : (friend.avatar_url || 'https://i.pravatar.cc/150')}
+                                  alt="ava"
+                                  className="w-12 h-12 rounded-full object-cover border-2 border-green-500/30 group-hover:border-green-500/60 transition-colors"
+                                  onError={(e) => { e.target.src = 'https://i.pravatar.cc/150'; }}
+                                />
+                                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-[#0D2D1F]"></div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-[#F5F2EB] text-sm truncate group-hover:text-[#D4AF37] transition-colors">{friend.full_name}</h4>
+                                <div className="flex items-center gap-1.5 text-[10px] text-white/30 mt-0.5">
+                                  {friend.location && <span>📍 {friend.location}</span>}
+                                  {friend.title && <span className="text-[#D4AF37]/60">· {friend.title}</span>}
+                                </div>
+                                {friend.map_status && (
+                                  <p className="text-[10px] text-white/40 mt-1 italic truncate">"{friend.map_status}"</p>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <span className="text-green-400 text-[9px] font-bold bg-green-500/10 px-2 py-0.5 rounded-full">✓ Bạn bè</span>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </motion.div>

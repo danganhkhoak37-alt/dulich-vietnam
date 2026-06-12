@@ -388,6 +388,9 @@ function Community() {
   }
   const navigate = useNavigate();
 
+  // Notification bell: pending connection count
+  const [pendingCount, setPendingCount] = useState(0);
+
   const fetchPosts = async () => {
     try {
       const url = loggedInUser 
@@ -400,7 +403,18 @@ function Community() {
     } catch { setPosts([]); }
   };
 
-  useEffect(() => { fetchPosts(); }, []);
+  const fetchPendingCount = async () => {
+    if (!loggedInUser) return;
+    try {
+      const res = await fetch(`${API_URL}/api/connections/pending/count`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` }
+      });
+      const data = await res.json();
+      if (data.status === 'success') setPendingCount(data.count || 0);
+    } catch (e) { console.error(e); }
+  };
+
+  useEffect(() => { fetchPosts(); fetchPendingCount(); }, []);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -500,7 +514,7 @@ function Community() {
         {/* ===== CỘT GIỮA: FEED/MAP ===== */}
         <main className="col-span-1 lg:col-span-2 space-y-5">
           {/* Tabs Navigation */}
-          <div className="flex gap-2 bg-[#0D2D1F] p-2 rounded-2xl border border-white/5">
+          <div className="flex gap-2 bg-[#0D2D1F] p-2 rounded-2xl border border-white/5 items-center">
             <button 
               onClick={() => setActiveTab('feed')}
               className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all uppercase tracking-widest ${activeTab === 'feed' ? 'bg-[#D4AF37] text-black shadow-lg' : 'text-white/50 hover:bg-white/5 hover:text-white'}`}
@@ -513,6 +527,23 @@ function Community() {
             >
               🗺️ Bản Đồ Phượt Thủ
             </button>
+            {/* Notification Bell */}
+            {loggedInUser && (
+              <button
+                onClick={() => navigate('/profile?tab=Lời+Mời')}
+                className="relative p-2.5 rounded-xl text-white/40 hover:bg-white/5 hover:text-[#D4AF37] transition-all"
+                title="Lời mời kết nối"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                {pendingCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                    {pendingCount > 9 ? '9+' : pendingCount}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
 
           {activeTab === 'feed' ? (

@@ -126,6 +126,9 @@ function CommunityMap() {
   // Existing pin
   const [myExistingPin, setMyExistingPin] = useState(null);
 
+  // Connection statuses: { [userId]: 'none' | 'pending' | 'accepted' | 'sending' }
+  const [connectionStatuses, setConnectionStatuses] = useState({});
+
   const loggedInUser = getLoggedInUser();
 
   const fetchMapUsers = async () => {
@@ -149,9 +152,66 @@ function CommunityMap() {
     fetchMapUsers();
   }, []);
 
-  const handleConnect = (name) => {
-    setToast(`Đã gửi lời mời kết nối đến ${name}!`);
+  // Gửi lời mời kết nối thật qua API
+  const handleConnect = async (user) => {
+    if (!loggedInUser) {
+      alert('Vui lòng đăng nhập để kết nối!');
+      return;
+    }
+    // Mock users can't be connected
+    if (String(user.id).startsWith('mock_')) {
+      setToast(`Đã gửi lời mời kết nối đến ${user.name}!`);
+      setConnectionStatuses(prev => ({ ...prev, [user.id]: 'pending' }));
+      setTimeout(() => setToast(''), 3000);
+      return;
+    }
+    if (user.id === loggedInUser.id) {
+      setToast('Không thể kết nối với chính mình!');
+      setTimeout(() => setToast(''), 3000);
+      return;
+    }
+    setConnectionStatuses(prev => ({ ...prev, [user.id]: 'sending' }));
+    try {
+      const res = await fetch(`${API_URL}/api/connections/request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify({ to_user_id: user.id })
+      });
+      const data = await res.json();
+      if (data.status === 'success' || data.status === 'already_sent') {
+        setConnectionStatuses(prev => ({ ...prev, [user.id]: 'pending' }));
+        setToast(data.message);
+      } else if (data.status === 'already_friends') {
+        setConnectionStatuses(prev => ({ ...prev, [user.id]: 'accepted' }));
+        setToast(data.message);
+      } else {
+        setConnectionStatuses(prev => ({ ...prev, [user.id]: 'none' }));
+        setToast('❌ ' + (data.message || 'Lỗi khi gửi lời mời'));
+      }
+    } catch (err) {
+      console.error(err);
+      setConnectionStatuses(prev => ({ ...prev, [user.id]: 'none' }));
+      setToast('❌ Lỗi kết nối máy chủ');
+    }
     setTimeout(() => setToast(''), 3000);
+  };
+
+  // Fetch connection status for a specific user when popup opens
+  const fetchConnectionStatus = async (userId) => {
+    if (!loggedInUser || String(userId).startsWith('mock_') || userId === loggedInUser.id) return;
+    if (connectionStatuses[userId]) return; // already fetched
+    try {
+      const res = await fetch(`${API_URL}/api/connections/status/${userId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` }
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setConnectionStatuses(prev => ({ ...prev, [userId]: data.connection_status }));
+      }
+    } catch (e) { console.error(e); }
   };
 
   // Reverse geocode to get location name
@@ -426,11 +486,15 @@ function CommunityMap() {
         )}
 
         {/* Users */}
-        {users.map(user => (
+        {users.map(user => {
+          const connStatus = connectionStatuses[user.id] || 'none';
+          const isSelf = loggedInUser && user.id === loggedInUser.id;
+          return (
           <Marker 
             key={user.id} 
             position={[user.lat, user.lng]} 
             icon={createAvatarIcon(user.ava)}
+            eventHandlers={{ popupopen: () => fetchConnectionStatus(user.id) }}
           >
             <Popup className="custom-popup">
               <div className="p-1 min-w-[220px]">
@@ -460,16 +524,35 @@ function CommunityMap() {
                   </div>
                 )}
                 
-                <button 
-                  onClick={() => handleConnect(user.name)}
-                  className="w-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-black text-xs font-black py-2 rounded-full hover:shadow-lg hover:shadow-[#D4AF37]/20 transition-all uppercase tracking-wider"
-                >
-                  🤝 Kết nối ngay
-                </button>
+                {isSelf ? (
+                  <div className="w-full text-center text-[10px] text-white/40 py-2 bg-white/5 rounded-full font-bold">
+                    📍 Đây là bạn
+                  </div>
+                ) : connStatus === 'accepted' ? (
+                  <div className="w-full text-center text-xs text-green-400 py-2 bg-green-500/10 rounded-full font-black border border-green-500/20">
+                    🤝 Đã kết nối
+                  </div>
+                ) : connStatus === 'pending' ? (
+                  <div className="w-full text-center text-xs text-[#D4AF37] py-2 bg-[#D4AF37]/10 rounded-full font-bold border border-[#D4AF37]/20">
+                    ⏳ Đã gửi lời mời
+                  </div>
+                ) : connStatus === 'sending' ? (
+                  <div className="w-full text-center text-xs text-white/50 py-2 bg-white/5 rounded-full font-bold">
+                    <span className="animate-pulse">⏳ Đang gửi...</span>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => handleConnect(user)}
+                    className="w-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-black text-xs font-black py-2 rounded-full hover:shadow-lg hover:shadow-[#D4AF37]/20 transition-all uppercase tracking-wider"
+                  >
+                    🤝 Kết nối ngay
+                  </button>
+                )}
               </div>
             </Popup>
           </Marker>
-        ))}
+          );
+        })}
       </MapContainer>
 
       {/* Location Modal */}

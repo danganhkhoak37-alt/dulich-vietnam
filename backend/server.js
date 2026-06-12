@@ -187,6 +187,14 @@ async function initDB() {
         content TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+      CREATE TABLE IF NOT EXISTS connections (
+        id SERIAL PRIMARY KEY,
+        from_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        to_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(from_user_id, to_user_id)
+      );
     `);
 
     // OAuth & Map columns migration for PostgreSQL (idempotent)
@@ -267,6 +275,16 @@ async function initDB() {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (post_id) REFERENCES posts(id),
         FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+      CREATE TABLE IF NOT EXISTS connections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        from_user_id INTEGER,
+        to_user_id INTEGER,
+        status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(from_user_id, to_user_id),
+        FOREIGN KEY (from_user_id) REFERENCES users(id),
+        FOREIGN KEY (to_user_id) REFERENCES users(id)
       );
     `);
 
@@ -2361,6 +2379,127 @@ app.delete('/api/map/location', authMiddleware, async (req, res) => {
       [userId]
     );
     res.json({ status: 'success', message: 'Đã xóa ghim vị trí' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// ============================================================
+// CONNECTIONS APIs — Hệ thống kết nối bạn bè
+// ============================================================
+
+// Gửi lời mời kết nối
+app.post('/api/connections/request', authMiddleware, async (req, res) => {
+  const fromId = req.user.id;
+  const { to_user_id } = req.body;
+  if (!to_user_id) return res.status(400).json({ status: 'error', message: 'Thiếu to_user_id' });
+  if (fromId == to_user_id) return res.status(400).json({ status: 'error', message: 'Không thể kết nối với chính mình' });
+  try {
+    // Check if already exists (either direction)
+    const existing = await db.get(
+      'SELECT id, status FROM connections WHERE (from_user_id=? AND to_user_id=?) OR (from_user_id=? AND to_user_id=?)',
+      [fromId, to_user_id, to_user_id, fromId]
+    );
+    if (existing) {
+      if (existing.status === 'accepted') return res.json({ status: 'already_friends', message: 'Đã là bạn bè!' });
+      if (existing.status === 'pending') return res.json({ status: 'already_sent', message: 'Lời mời đã được gửi trước đó!' });
+      // If rejected, allow resending
+      if (existing.status === 'rejected') {
+        await db.run('UPDATE connections SET status=?, from_user_id=?, to_user_id=?, created_at=CURRENT_TIMESTAMP WHERE id=?',
+          ['pending', fromId, to_user_id, existing.id]);
+        return res.json({ status: 'success', message: 'Đã gửi lại lời mời kết nối!' });
+      }
+    }
+    await db.run('INSERT INTO connections (from_user_id, to_user_id, status) VALUES (?,?,?)',
+      [fromId, to_user_id, 'pending']);
+    res.json({ status: 'success', message: 'Đã gửi lời mời kết nối!' });
+  } catch (err) {
+    console.error('Connection Request Error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Chấp nhận / từ chối lời mời
+app.post('/api/connections/respond', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  const { connection_id, action } = req.body;
+  if (!connection_id || !['accept', 'reject'].includes(action))
+    return res.status(400).json({ status: 'error', message: 'Dữ liệu không hợp lệ' });
+  try {
+    const conn = await db.get('SELECT * FROM connections WHERE id=? AND to_user_id=? AND status=?',
+      [connection_id, userId, 'pending']);
+    if (!conn) return res.status(404).json({ status: 'error', message: 'Không tìm thấy lời mời hoặc đã xử lý' });
+    const newStatus = action === 'accept' ? 'accepted' : 'rejected';
+    await db.run('UPDATE connections SET status=? WHERE id=?', [newStatus, connection_id]);
+    res.json({ status: 'success', message: action === 'accept' ? 'Đã chấp nhận kết nối!' : 'Đã từ chối lời mời.' });
+  } catch (err) {
+    console.error('Connection Respond Error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Lấy danh sách lời mời đang chờ
+app.get('/api/connections/pending', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const pending = await db.all(`
+      SELECT c.id as connection_id, c.created_at, c.from_user_id,
+             u.full_name, u.avatar_url, u.location, u.title,
+             u.map_status
+      FROM connections c
+      JOIN users u ON c.from_user_id = u.id
+      WHERE c.to_user_id=? AND c.status='pending'
+      ORDER BY c.created_at DESC
+    `, [userId]);
+    res.json({ status: 'success', data: pending });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Đếm số lời mời chưa xử lý
+app.get('/api/connections/pending/count', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const result = await db.get('SELECT COUNT(*) as count FROM connections WHERE to_user_id=? AND status=?',
+      [userId, 'pending']);
+    res.json({ status: 'success', count: result.count });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Lấy danh sách bạn bè đã kết nối
+app.get('/api/connections/friends', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const friends = await db.all(`
+      SELECT 
+        CASE WHEN c.from_user_id = ? THEN c.to_user_id ELSE c.from_user_id END as friend_id,
+        u.full_name, u.avatar_url, u.location, u.title, u.map_status,
+        c.created_at as connected_at
+      FROM connections c
+      JOIN users u ON u.id = CASE WHEN c.from_user_id = ? THEN c.to_user_id ELSE c.from_user_id END
+      WHERE (c.from_user_id=? OR c.to_user_id=?) AND c.status='accepted'
+      ORDER BY c.created_at DESC
+    `, [userId, userId, userId, userId]);
+    res.json({ status: 'success', data: friends });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Kiểm tra trạng thái kết nối với 1 user
+app.get('/api/connections/status/:targetId', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  const targetId = req.params.targetId;
+  try {
+    const conn = await db.get(
+      'SELECT id, status, from_user_id FROM connections WHERE (from_user_id=? AND to_user_id=?) OR (from_user_id=? AND to_user_id=?)',
+      [userId, targetId, targetId, userId]
+    );
+    if (!conn) return res.json({ status: 'success', connection_status: 'none' });
+    res.json({ status: 'success', connection_status: conn.status, sent_by_me: conn.from_user_id == userId });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
