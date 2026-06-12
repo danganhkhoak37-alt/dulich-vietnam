@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import API_URL from '../config/api';
+import ChatDrawer from '../components/ChatDrawer';
 
 const RANK_SYSTEM = [
   { name: 'Tân Binh',      icon: '🌱', min: 0,  max: 5,   color: 'text-gray-400' },
@@ -40,6 +41,8 @@ function Profile() {
   const [friends, setFriends] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [respondingId, setRespondingId] = useState(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatFriendId, setChatFriendId] = useState(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const loggedInUser = JSON.parse(localStorage.getItem('user'));
@@ -225,6 +228,7 @@ function Profile() {
   const totalLikes = Array.isArray(posts) ? posts.reduce((s, p) => s + (p.likes || 0), 0) : 0;
 
   return (
+    <>
     <div className="min-h-screen bg-[#0A241A] pb-20">
       {/* Toast notification */}
       {toast && (
@@ -627,7 +631,13 @@ function Profile() {
                                   <p className="text-[10px] text-white/40 mt-1 italic truncate">"{friend.map_status}"</p>
                                 )}
                               </div>
-                              <div className="text-right">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => { setChatFriendId(friend.friend_id); setChatOpen(true); }}
+                                  className="text-[#D4AF37] text-[10px] font-bold bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:shadow-lg hover:shadow-[#D4AF37]/10"
+                                >
+                                  💬 Nhắn tin
+                                </button>
                                 <span className="text-green-400 text-[9px] font-bold bg-green-500/10 px-2 py-0.5 rounded-full">✓ Bạn bè</span>
                               </div>
                             </div>
@@ -643,6 +653,14 @@ function Profile() {
         </div>
       </div>
     </div>
+
+    {/* Chat Drawer */}
+    <ChatDrawer
+      isOpen={chatOpen}
+      onClose={() => { setChatOpen(false); setChatFriendId(null); }}
+      initialFriendId={chatFriendId}
+    />
+  </>
   );
 }
 

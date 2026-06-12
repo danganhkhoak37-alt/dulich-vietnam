@@ -195,6 +195,14 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(from_user_id, to_user_id)
       );
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        sender_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        receiver_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        content TEXT NOT NULL,
+        is_read INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
     // OAuth & Map columns migration for PostgreSQL (idempotent)
@@ -285,6 +293,16 @@ async function initDB() {
         UNIQUE(from_user_id, to_user_id),
         FOREIGN KEY (from_user_id) REFERENCES users(id),
         FOREIGN KEY (to_user_id) REFERENCES users(id)
+      );
+      CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sender_id INTEGER,
+        receiver_id INTEGER,
+        content TEXT NOT NULL,
+        is_read INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (sender_id) REFERENCES users(id),
+        FOREIGN KEY (receiver_id) REFERENCES users(id)
       );
     `);
 
@@ -2500,6 +2518,154 @@ app.get('/api/connections/status/:targetId', authMiddleware, async (req, res) =>
     );
     if (!conn) return res.json({ status: 'success', connection_status: 'none' });
     res.json({ status: 'success', connection_status: conn.status, sent_by_me: conn.from_user_id == userId });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// ============================================================
+// MESSAGES APIs — Nhắn tin giữa bạn bè
+// ============================================================
+
+// Helper: kiểm tra 2 user có phải bạn bè không
+async function areFriends(userId1, userId2) {
+  const conn = await db.get(
+    'SELECT id FROM connections WHERE ((from_user_id=? AND to_user_id=?) OR (from_user_id=? AND to_user_id=?)) AND status=?',
+    [userId1, userId2, userId2, userId1, 'accepted']
+  );
+  return !!conn;
+}
+
+// Lấy danh sách cuộc hội thoại (bạn bè + tin nhắn cuối + số chưa đọc)
+app.get('/api/messages/conversations', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    // Lấy danh sách bạn bè
+    const friends = await db.all(`
+      SELECT 
+        CASE WHEN c.from_user_id = ? THEN c.to_user_id ELSE c.from_user_id END as friend_id,
+        u.full_name, u.avatar_url, u.location
+      FROM connections c
+      JOIN users u ON u.id = CASE WHEN c.from_user_id = ? THEN c.to_user_id ELSE c.from_user_id END
+      WHERE (c.from_user_id=? OR c.to_user_id=?) AND c.status='accepted'
+    `, [userId, userId, userId, userId]);
+
+    // Cho mỗi bạn bè, lấy tin nhắn cuối và đếm chưa đọc
+    const conversations = [];
+    for (const friend of friends) {
+      const lastMsg = await db.get(`
+        SELECT content, created_at, sender_id FROM messages
+        WHERE (sender_id=? AND receiver_id=?) OR (sender_id=? AND receiver_id=?)
+        ORDER BY created_at DESC LIMIT 1
+      `, [userId, friend.friend_id, friend.friend_id, userId]);
+
+      const unreadResult = await db.get(`
+        SELECT COUNT(*) as count FROM messages
+        WHERE sender_id=? AND receiver_id=? AND is_read=0
+      `, [friend.friend_id, userId]);
+
+      conversations.push({
+        friend_id: friend.friend_id,
+        full_name: friend.full_name,
+        avatar_url: friend.avatar_url,
+        location: friend.location,
+        last_message: lastMsg ? lastMsg.content : null,
+        last_message_time: lastMsg ? lastMsg.created_at : null,
+        last_message_is_mine: lastMsg ? lastMsg.sender_id == userId : false,
+        unread_count: unreadResult ? unreadResult.count : 0
+      });
+    }
+
+    // Sắp xếp: có tin nhắn mới nhất lên trước
+    conversations.sort((a, b) => {
+      if (!a.last_message_time && !b.last_message_time) return 0;
+      if (!a.last_message_time) return 1;
+      if (!b.last_message_time) return -1;
+      return new Date(b.last_message_time) - new Date(a.last_message_time);
+    });
+
+    res.json({ status: 'success', data: conversations });
+  } catch (err) {
+    console.error('Conversations Error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Lấy lịch sử tin nhắn với 1 bạn bè
+app.get('/api/messages/:friendId', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  const friendId = parseInt(req.params.friendId);
+  const before = req.query.before; // cursor-based pagination
+  try {
+    if (!(await areFriends(userId, friendId))) {
+      return res.status(403).json({ status: 'error', message: 'Chưa kết bạn, không thể xem tin nhắn' });
+    }
+    let query = `
+      SELECT id, sender_id, receiver_id, content, is_read, created_at
+      FROM messages
+      WHERE (sender_id=? AND receiver_id=?) OR (sender_id=? AND receiver_id=?)
+    `;
+    const params = [userId, friendId, friendId, userId];
+    if (before) {
+      query += ' AND id < ?';
+      params.push(parseInt(before));
+    }
+    query += ' ORDER BY created_at DESC LIMIT 50';
+    const messages = await db.all(query, params);
+    res.json({ status: 'success', data: messages.reverse() });
+  } catch (err) {
+    console.error('Messages History Error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Gửi tin nhắn mới
+app.post('/api/messages', authMiddleware, async (req, res) => {
+  const senderId = req.user.id;
+  const { receiver_id, content } = req.body;
+  if (!receiver_id || !content || !content.trim()) {
+    return res.status(400).json({ status: 'error', message: 'Thiếu nội dung hoặc người nhận' });
+  }
+  try {
+    if (!(await areFriends(senderId, receiver_id))) {
+      return res.status(403).json({ status: 'error', message: 'Chưa kết bạn, không thể gửi tin nhắn' });
+    }
+    const r = await db.run(
+      'INSERT INTO messages (sender_id, receiver_id, content) VALUES (?,?,?)',
+      [senderId, receiver_id, content.trim()]
+    );
+    const msg = await db.get('SELECT * FROM messages WHERE id=?', [r.lastID]);
+    res.json({ status: 'success', data: msg });
+  } catch (err) {
+    console.error('Send Message Error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Đánh dấu đã đọc tất cả tin nhắn từ 1 bạn bè
+app.put('/api/messages/read/:friendId', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  const friendId = parseInt(req.params.friendId);
+  try {
+    await db.run(
+      'UPDATE messages SET is_read=1 WHERE sender_id=? AND receiver_id=? AND is_read=0',
+      [friendId, userId]
+    );
+    res.json({ status: 'success' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Đếm tổng tin nhắn chưa đọc
+app.get('/api/messages/unread/count', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const result = await db.get(
+      'SELECT COUNT(*) as count FROM messages WHERE receiver_id=? AND is_read=0',
+      [userId]
+    );
+    res.json({ status: 'success', count: result.count });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
