@@ -177,6 +177,26 @@ function Navbar() {
                 {link.name}
               </Link>
             ))}
+            {user && (
+              <>
+                <Link
+                  to="/profile"
+                  onClick={scrollToTop}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-wider transition-all ${location.pathname === '/profile'
+                      ? 'bg-[#D4AF37]/15 text-[#D4AF37]'
+                      : 'text-[#D4AF37] hover:bg-white/5'
+                    }`}
+                >
+                  Trang cá nhân
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-wider text-red-400 hover:bg-red-500/10 transition-all"
+                >
+                  Đăng xuất
+                </button>
+              </>
+            )}
           </div>
         </div>
       </nav>

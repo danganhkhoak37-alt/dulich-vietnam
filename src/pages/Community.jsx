@@ -468,7 +468,7 @@ function Community() {
 
   return (
     <div className="bg-[#0A241A] min-h-screen pt-24 pb-10 font-sans">
-      <div className="max-w-[1200px] mx-auto px-5 grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="max-w-[1200px] mx-auto px-5 grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
 
         {/* ===== CỘT TRÁI ===== */}
         <aside className="hidden lg:flex flex-col gap-5 lg:col-span-1 sticky top-24 h-fit">
