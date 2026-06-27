@@ -136,7 +136,7 @@ function Home() {
       desc: 'Thành phố ngàn hoa với không khí se lạnh mờ sương, những đồi thông reo trong gió và vô số homestay có gu. Đà Lạt lãng mạn, nên thơ là chốn trốn lý tưởng để thưởng thức một ly cà phê ấm nóng ven hồ Xuân Hương và đắm chìm trong vẻ cổ kính của kiến trúc Pháp để lại.'
     },
     {
-      img: 'https://kinhtevadubao.vn/stores/news_dataimages/kinhtevadubaovn/092018/18/14/1537170510-news-1243820210326195207.3736490.jpg?randTime=1777256014',
+      img: 'https://ik.imagekit.io/tvlk/blog/2025/03/quan-the-di-tich-co-do-hue-cover.png',
       title: 'Cố đô Huế',
       location: 'Thừa Thiên Huế',
       rating: 4.8,

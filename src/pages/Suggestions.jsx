@@ -12,10 +12,10 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Radius of the Earth in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return Math.round(R * c);
 }
 
@@ -37,7 +37,7 @@ const TRENDING = [
   { id: 6, name: 'Phong Nha', location: 'Quảng Bình', views: '10.5k', badge: '⭐ Nổi Bật', season: 'T3 - T8', description: 'Vương quốc hang động Phong Nha - Kẻ Bàng là Di sản thiên nhiên thế giới với hệ thống hang động kiến tạo kỳ bí và tráng lệ nhất.', image_url: 'https://ecotour.com.vn/wp-content/uploads/2025/05/du-lich-dong-phong-nha-ke-bang-quang-binh.jpeg' },
   { id: 7, name: 'Đà Nẵng', location: 'Đà Nẵng', views: '16.2k', badge: '🔥 Đang Hot', season: 'T3 - T8', description: 'Sở hữu bãi biển Mỹ Khê lọt top đẹp nhất hành tinh, những cây cầu biểu tượng như Cầu Rồng, Cầu Sông Hàn, và Bà Nà Hills bồng bềnh.', image_url: 'https://ik.imagekit.io/tvlk/blog/2023/09/bien-my-khe-18.jpg?tr=q-70,c-at_max,w-1000,h-600' },
   { id: 8, name: 'Đà Lạt', location: 'Lâm Đồng', views: '18.4k', badge: '🔥 Đang Hot', season: 'T11 - T3', description: 'Thành phố ngàn hoa với không khí se lạnh mờ sương, những đồi thông reo trong gió và vô số homestay có gu.', image_url: 'https://bizweb.dktcdn.net/thumb/1024x1024/100/093/257/products/thung-lung-ngan-hoa.jpg?v=1731570795333' },
-  { id: 9, name: 'Cố đô Huế', location: 'Thừa Thiên Huế', views: '9.8k', badge: '⭐ Nổi Bật', season: 'T2 - T4', description: 'Mang trong mình vẻ đẹp trầm mặc, cổ kính của kinh thành xưa, Huế gây ấn tượng với hệ thống Lăng Tẩm, chùa Thiên Mụ.', image_url: 'https://i1-e.pinimg.com/1200x/5e/e2/0f/5ee20fefc0cf88e2f07ddb3957f0c82a.jpg' },
+  { id: 9, name: 'Cố đô Huế', location: 'Thừa Thiên Huế', views: '9.8k', badge: '⭐ Nổi Bật', season: 'T2 - T4', description: 'Mang trong mình vẻ đẹp trầm mặc, cổ kính của kinh thành xưa, Huế gây ấn tượng với hệ thống Lăng Tẩm, chùa Thiên Mụ.', image_url: 'https://ik.imagekit.io/tvlk/blog/2025/03/quan-the-di-tich-co-do-hue-cover.png' },
   { id: 10, name: 'Tà Xùa', location: 'Hà Giang', views: '11.3k', badge: '⭐ Nổi Bật', season: 'T9 - T11', description: 'Mảnh đất địa đầu tổ quốc mang vẻ đẹp hoang sơ, tráng lệ với cao nguyên đá Đồng Văn ngoạn mục, đèo Mã Pí Lèng hiểm trở.', image_url: 'https://i1-e.pinimg.com/1200x/74/8d/2e/748d2ee4c771a02fff08cd57512c26d0.jpg' },
   { id: 11, name: 'Mũi Né', location: 'Bình Thuận', views: '10.1k', badge: '🔥 Đang Hot', season: 'T12 - T4', description: 'Nổi bật với những đồi cát bay vàng rực đổi màu theo nắng, dòng Suối Tiên đỏ ối kỳ lạ và bờ biển dài trong xanh.', image_url: 'https://lalago.vn/wp-content/uploads/2025/05/image7-5.jpg' },
   { id: 12, name: 'Cát Bà', location: 'Hải Phòng', views: '8.9k', badge: '⭐ Nổi Bật', season: 'T4 - T8', description: 'Đảo Ngọc lớn nhất của Vịnh Bắc Bộ, ôm trọn trong mình những bãi tắm tự nhiên trong vắt tĩnh lặng và vườn quốc gia.', image_url: 'https://pystravel.vn/_next/image?url=https%3A%2F%2Fbooking.pystravel.vn%2Fuploads%2Fposts%2Falbums%2F6274%2Fe073a7e3cd255785f32421c891f3c02f.jpg&w=1920&q=75' },
@@ -54,34 +54,34 @@ const REVIEWS = [
 ];
 
 const CATEGORIES = [
-  { 
-    id: 'nature', 
-    label: 'Chữa Lành & Thiên Nhiên', 
-    icon: '🌿', 
+  {
+    id: 'nature',
+    label: 'Chữa Lành & Rừng Núi',
+    icon: '🌿',
     desc: 'Rừng, hang động, cắm trại',
     color: 'from-green-900 to-green-700',
     exactLocations: ['Hang Sơn Đoòng', 'Phong Nha – Kẻ Bàng', 'Fansipan', 'Mã Pí Lèng', 'Mù Cang Chải', 'Đèo Ô Quy Hồ', 'Sìn Hồ', 'Na Hang', 'Bản Giốc', 'Ngườm Ngao', 'Hồ Ba Bể', 'Rừng tràm Trà Sư', 'Núi Cấm']
   },
-  { 
-    id: 'beach', 
-    label: 'Biển Đảo Mùa Hè', 
-    icon: '🌊', 
+  {
+    id: 'beach',
+    label: 'Biển Đảo Mùa Hè',
+    icon: '🌊',
     desc: 'Resort, lặn san hô, hoàng hôn',
     color: 'from-blue-900 to-blue-700',
     exactLocations: ['Vịnh Hạ Long', 'Phú Quốc', 'Biển Mỹ Khê', 'Biển Sầm Sơn', 'Biển Cửa Lò', 'Biển Thiên Cầm', 'Vịnh Nha Trang', 'Cát Bà', 'Cô Tô', 'Đồ Sơn', 'Biển Đồng Châu', 'Hang Rái', 'Bàu Trắng', 'Đảo Phú Quý']
   },
-  { 
-    id: 'culture', 
-    label: 'Văn Hoá & Lịch Sử', 
-    icon: '🏛️', 
+  {
+    id: 'culture',
+    label: 'Văn Hoá & Lịch Sử',
+    icon: '🏛️',
     desc: 'Phố cổ, di tích, bảo tàng',
     color: 'from-amber-900 to-amber-700',
     exactLocations: ['Phố cổ Hội An', 'Đại Nội Huế', 'Thánh địa Mỹ Sơn', 'Thành Nhà Hồ', 'Văn Miếu', 'Chùa Thiên Mụ', 'Chùa Hương Tích', 'Làng Sen quê Bác', 'Thành cổ Quảng Trị', 'Cầu Hiền Lương', 'Lăng Chủ tịch Hồ Chí Minh', 'Phố cổ', 'Đền Hùng', 'Chùa Dâu', 'Chùa Bút Tháp', 'Đền Trần', 'Tam Chúc', 'Tân Trào', 'Tràng An', 'Tháp Bà Ponagar', 'Nhà cổ Bình Thủy', 'Miếu Bà Chúa Xứ', 'Chùa Vĩnh Tràng', 'Nhà công tử Bạc Liêu']
   },
-  { 
-    id: 'chill', 
-    label: 'Phượt & Khám Phá', 
-    icon: '🧭', 
+  {
+    id: 'chill',
+    label: 'Phượt & Khám Phá',
+    icon: '🧭',
     desc: 'Đèo, trekking, cung đường đẹp',
     color: 'from-rose-900 to-rose-700',
     exactLocations: ['Sa Pa', 'Đà Lạt', 'Mộc Châu', 'Mai Châu', 'Tam Đảo', 'Chợ Bến Thành', 'Phố đi bộ Nguyễn Huệ', 'Đồng Văn', 'Lũng Cú', 'Cát Cát', 'Tam Cốc', 'Hang Múa', 'Hồ Gươm', 'Sông Hương', 'Mộc Châu', 'Đồi chè', 'Thác Dải Yếm', 'Đèo Khau Phạ', 'Đồi A1', 'Hầm Đờ Cát', 'Hồ Pá Khoang', 'Hồ Hòa Bình', 'Thanh Thủy', 'Tam Đảo', 'Tây Thiên', 'Hồ Cấm Sơn', 'Tây Yên Tử', 'Phố Hiến', 'Văn Miếu Xích Đằng', 'Hồ Núi Cốc', 'Mẫu Sơn', 'Bà Nà Hills', 'Bán đảo Sơn Trà', 'Eo Gió', 'Kỳ Co', 'Gành Đá Đĩa', 'Bãi Xép', 'Vườn nho Thái An', 'Nhà thờ Đức Bà', 'Landmark 81', 'Chợ nổi Cái Răng', 'Bến Ninh Kiều', 'Cù lao Thới Sơn', 'Làng nổi Tân Lập', 'Cánh đồng điện gió']
@@ -135,7 +135,7 @@ function Suggestions() {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_URL}/api/saved-locations/toggle`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
@@ -291,7 +291,7 @@ function Suggestions() {
             return a.distance - b.distance;
           });
         }
-      } catch {}
+      } catch { }
 
       setLocationResults(data);
       setHasSearched(true);
@@ -362,10 +362,10 @@ function Suggestions() {
                 className="w-full py-5 pl-14 pr-12 bg-transparent outline-none font-semibold text-white placeholder-white/40 text-base border-b md:border-b-0 md:border-r border-white/10"
                 placeholder="Xuất phát từ đâu?"
                 value={startLocation}
-                onChange={(e) => { setStartLocation(e.target.value); if(e.target.value !== '📍 Vị trí hiện tại của tôi') setGpsCoords(null); }}
+                onChange={(e) => { setStartLocation(e.target.value); if (e.target.value !== '📍 Vị trí hiện tại của tôi') setGpsCoords(null); }}
                 onKeyDown={(e) => e.key === 'Enter' && handleLocationSearch()}
               />
-              <button 
+              <button
                 onClick={handleGetGPS}
                 title="Lấy vị trí của tôi"
                 className="absolute right-4 text-white/50 hover:text-[#D4AF37] transition-colors"
@@ -390,7 +390,7 @@ function Suggestions() {
               {searchLoading ? '⏳ Đang tìm...' : '🔍 Tìm Kiếm'}
             </button>
           </motion.div>
-          
+
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.5 }} className="text-white/60 text-sm italic font-light pt-2">
             💡 Mẹo: Nhấn vào <span className="text-[#D4AF37] font-bold">la bàn (🧭)</span> để tự động định vị và tìm nhanh các điểm đến quanh bạn!
           </motion.p>
@@ -451,10 +451,10 @@ function Suggestions() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {categoryResults.map((loc, idx) => (
                   <div key={loc.id || idx}>
-                    <LocationCard 
-                      loc={loc} 
-                      month={selectedMonth} 
-                      onClick={() => setSelectedLocation(loc)} 
+                    <LocationCard
+                      loc={loc}
+                      month={selectedMonth}
+                      onClick={() => setSelectedLocation(loc)}
                       isSaved={savedLocations.includes(loc.name)}
                       onToggleSave={handleToggleSave}
                     />
@@ -500,10 +500,10 @@ function Suggestions() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {locationResults.map((loc, idx) => (
                   <div key={loc.id || idx}>
-                    <LocationCard 
-                      loc={loc} 
-                      month={selectedMonth} 
-                      onClick={() => setSelectedLocation(loc)} 
+                    <LocationCard
+                      loc={loc}
+                      month={selectedMonth}
+                      onClick={() => setSelectedLocation(loc)}
                       isSaved={savedLocations.includes(loc.name)}
                       onToggleSave={handleToggleSave}
                     />
@@ -546,16 +546,16 @@ function Suggestions() {
                   {dest.badge}
                 </div>
                 {/* Favorite Button */}
-                <button 
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleToggleSave(dest);
                   }}
                   className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 hover:bg-black/60 transition-all group/heart hover:scale-110"
                 >
-                  <Heart 
-                    size={16} 
-                    className={`transition-colors ${savedLocations.includes(dest.name) ? 'text-red-500 fill-red-500' : 'text-white group-hover/heart:text-red-400'}`} 
+                  <Heart
+                    size={16}
+                    className={`transition-colors ${savedLocations.includes(dest.name) ? 'text-red-500 fill-red-500' : 'text-white group-hover/heart:text-red-400'}`}
                   />
                 </button>
                 {/* Content */}
@@ -565,7 +565,7 @@ function Suggestions() {
                       <h3 className="text-xl font-heading font-bold text-white mb-1">{dest.name}</h3>
                       <p className="text-white/60 text-xs flex items-center gap-1">📍 {dest.location}</p>
                     </div>
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate('/guide', { state: { locationName: dest.name, province: dest.location } });
@@ -630,10 +630,10 @@ function Suggestions() {
       </section>
 
       {/* Tích hợp Location Detail Modal */}
-      <LocationDetailModal 
-        isOpen={!!selectedLocation} 
-        onClose={() => setSelectedLocation(null)} 
-        location={selectedLocation} 
+      <LocationDetailModal
+        isOpen={!!selectedLocation}
+        onClose={() => setSelectedLocation(null)}
+        location={selectedLocation}
       />
     </div>
   );

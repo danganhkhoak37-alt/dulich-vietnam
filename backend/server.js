@@ -372,7 +372,7 @@ async function initDB() {
       ['Phú Quốc','Biển Đảo','Kiên Giang',10.2899,103.9840,11,4,'Đảo ngọc thiên đường nhiệt đới','https://mtcs.1cdn.vn/2023/03/23/quan-dao-an-thoi-phu-quoc.jpg',11200],
       ['Đà Lạt','Thiên Nhiên','Lâm Đồng',11.9465,108.4419,11,3,'Thành phố ngàn hoa và sương mù','https://bizweb.dktcdn.net/thumb/1024x1024/100/093/257/products/thung-lung-ngan-hoa.jpg?v=1731570795333',9500],
       ['Hạ Long','Thiên Nhiên','Quảng Ninh',20.9101,107.1839,9,11,'Vịnh kỳ quan thiên nhiên thế giới','https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=2070&auto=format&fit=crop',15000],
-      ['Huế','Lịch Sử','Thừa Thiên Huế',16.4637,107.5909,2,4,'Cố đô triều Nguyễn, di sản văn hóa','https://kinhtevadubao.vn/stores/news_dataimages/kinhtevadubaovn/092018/18/14/1537170510-news-1243820210326195207.3736490.jpg?randTime=1777256014',7600],
+      ['Huế','Lịch Sử','Thừa Thiên Huế',16.4637,107.5909,2,4,'Cố đô triều Nguyễn, di sản văn hóa','https://ik.imagekit.io/tvlk/blog/2025/03/quan-the-di-tich-co-do-hue-cover.png',7600],
     ];
     for (const l of locs) {
       await db.run('INSERT INTO locations (name,tag,location,latitude,longitude,best_month_start,best_month_end,description,image_url,views) VALUES (?,?,?,?,?,?,?,?,?,?)', l);
@@ -1176,7 +1176,7 @@ const DESTINATIONS = [
     tag: "Di Sản",
     best_month_start: 2,
     best_month_end: 4,
-    image_url: "https://kinhtevadubao.vn/stores/news_dataimages/kinhtevadubaovn/092018/18/14/1537170510-news-1243820210326195207.3736490.jpg?randTime=1777256014"
+    image_url: "https://ik.imagekit.io/tvlk/blog/2025/03/quan-the-di-tich-co-do-hue-cover.png"
   },
   {
     id: 10,
@@ -1649,7 +1649,7 @@ const DESTINATIONS = [
     tag: "Tâm Linh",
     best_month_start: 2,
     best_month_end: 4,
-    image_url: "https://i1-e.pinimg.com/1200x/5e/e2/0f/5ee20fefc0cf88e2f07ddb3957f0c82a.jpg"
+    image_url: "https://ik.imagekit.io/tvlk/blog/2025/03/quan-the-di-tich-co-do-hue-cover.png"
   },
   {
     id: 53,
