@@ -367,7 +367,7 @@ function LocationDetailModal({ isOpen, onClose, location }) {
                       src={`https://maps.google.com/maps?q=${encodeURIComponent(title + ', ' + province + ', Vietnam')}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
                       width="100%" 
                       height="100%" 
-                      style={{ border: 0, filter: 'grayscale(80%) invert(90%) contrast(80%)' }} 
+                      style={{ border: 0 }} 
                       allowFullScreen="" 
                       loading="lazy"
                     ></iframe>

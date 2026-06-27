@@ -162,6 +162,7 @@ function PostCard({ post, onRefresh }) {
   };
 
   const isOwner = loggedInUser && loggedInUser.id === post.user_id;
+  const isModerator = loggedInUser && (loggedInUser.role === 'moderator' || loggedInUser.role === 'admin');
 
   return (
     <motion.article
@@ -206,7 +207,7 @@ function PostCard({ post, onRefresh }) {
                   initial={{ opacity: 0, scale: 0.9, y: -10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                  className="absolute right-0 mt-2 w-40 bg-[#112418] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
+                  className="absolute right-0 mt-2 w-48 bg-[#112418] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
                 >
                   {isOwner ? (
                     <>
@@ -221,6 +222,18 @@ function PostCard({ post, onRefresh }) {
                         className="w-full text-left px-4 py-3 text-xs text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2"
                       >
                         🗑️ Xóa bài
+                      </button>
+                    </>
+                  ) : isModerator ? (
+                    <>
+                      <button 
+                        onClick={() => { handleDelete(); setShowMenu(false); }}
+                        className="w-full text-left px-4 py-3 text-xs text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2"
+                      >
+                        🛡️ Xóa bài (Moderator)
+                      </button>
+                      <button className="w-full text-left px-4 py-3 text-xs text-white/70 hover:bg-white/5 transition-all flex items-center gap-2">
+                        🚩 Báo cáo
                       </button>
                     </>
                   ) : (

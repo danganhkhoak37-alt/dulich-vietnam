@@ -199,7 +199,7 @@ function Profile() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
         },
-        body: JSON.stringify({ connection_id: connectionId, action })
+        body: JSON.stringify({ connection_id: connId, action })
       });
       const data = await res.json();
       if (data.status === 'success') {

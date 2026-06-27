@@ -446,7 +446,7 @@ function Home() {
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-2 gap-0 rounded-[2rem] overflow-hidden cinematic-shadow">
             <div className="h-[400px] lg:h-auto">
-              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3834.1104354030064!2d108.25809801485834!3d15.976820588937961!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3142108997dc971f%3A0x1295cb3d313469c9!2sVietnam%20-%20Korea%20University%20of%20Information%20and%20Communication%20Technology.!5e0!3m2!1sen!2s!4v1683451234567!5m2!1sen!2s" width="100%" height="100%" style={{ border: 0, filter: 'grayscale(100%) invert(90%) contrast(80%)' }} allowFullScreen="" loading="lazy"></iframe>
+              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3834.1104354030064!2d108.25809801485834!3d15.976820588937961!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3142108997dc971f%3A0x1295cb3d313469c9!2sVietnam%20-%20Korea%20University%20of%20Information%20and%20Communication%20Technology.!5e0!3m2!1sen!2s!4v1683451234567!5m2!1sen!2s" width="100%" height="100%" style={{ border: 0 }} allowFullScreen="" loading="lazy"></iframe>
             </div>
             <div className="bg-[#112418] p-12 lg:p-20 flex flex-col justify-center border-l border-white/5">
               <h3 className="text-4xl font-heading font-bold mb-4">Gửi Lời Nhắn</h3>

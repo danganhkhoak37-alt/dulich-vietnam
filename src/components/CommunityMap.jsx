@@ -101,7 +101,7 @@ function FlyToLocation({ position }) {
 
 function CommunityMap() {
   const [toast, setToast] = useState('');
-  const [mapStyleKey, setMapStyleKey] = useState('dark');
+  const [mapStyleKey, setMapStyleKey] = useState('street');
   const [users, setUsers] = useState([]);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatFriendId, setChatFriendId] = useState(null);
@@ -370,18 +370,7 @@ function CommunityMap() {
       {/* Map Header Overlay */}
       <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2 items-end">
         
-        {/* Style Selector */}
-        <div className="bg-[#0A241A]/90 backdrop-blur-md p-1.5 rounded-xl border border-[#D4AF37]/30 flex items-center shadow-lg">
-          <select 
-            value={mapStyleKey} 
-            onChange={(e) => setMapStyleKey(e.target.value)}
-            className="bg-transparent text-[#F5F2EB] text-xs font-bold outline-none cursor-pointer px-2"
-          >
-            {Object.entries(MAP_STYLES).map(([key, style]) => (
-              <option key={key} value={key} className="bg-[#0D2D1F] text-white">{style.name}</option>
-            ))}
-          </select>
-        </div>
+
 
         {/* Pin Buttons Group */}
         <div className="flex flex-col gap-1.5">

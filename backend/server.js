@@ -232,6 +232,9 @@ async function initDB() {
     await addColPG('users', 'map_status', 'TEXT');
     await addColPG('users', 'map_tags', 'TEXT');
 
+    // Role column for moderator system
+    await addColPG('users', 'role', "TEXT DEFAULT 'user'");
+
   } else {
     await db.exec(`
       CREATE TABLE IF NOT EXISTS users (
@@ -342,6 +345,9 @@ async function initDB() {
     await addCol('users', 'map_lng', 'REAL');
     await addCol('users', 'map_status', 'TEXT');
     await addCol('users', 'map_tags', 'TEXT');
+
+    // Role column for moderator system
+    await addCol('users', 'role', 'TEXT DEFAULT "user"');
   }
 
 
@@ -405,6 +411,15 @@ async function initDB() {
   }
 
   // Seed posts removed to allow only real posts
+
+  // Auto-assign moderator role for khoada2.25itb@vku.udn.vn
+  try {
+    const modUser = await db.get("SELECT id FROM users WHERE email=?", ['khoada2.25itb@vku.udn.vn']);
+    if (modUser) {
+      await db.run("UPDATE users SET role='moderator' WHERE id=?", [modUser.id]);
+      console.log('🛡️  Đã gán quyền moderator cho khoada2.25itb@vku.udn.vn');
+    }
+  } catch (e) { console.log('⚠️  Không thể gán moderator:', e.message); }
 
   console.log('✅ Wanderly VietNam Database sẵn sàng!');
 }
@@ -933,60 +948,32 @@ app.get('/api/users/:id/posts', async (req, res) => {
 });
 
 // Delete post
+// Delete post (owner hoặc moderator/admin có quyền xóa)
 app.delete('/api/posts/:id', async (req, res) => {
   const { user_id } = req.body;
   if (!user_id) return res.status(400).json({ status: 'error', message: 'Thiếu user_id' });
   try {
     const post = await db.get('SELECT user_id FROM posts WHERE id=?', [req.params.id]);
     if (!post) return res.status(404).json({ status: 'error', message: 'Không tìm thấy bài viết' });
-    if (post.user_id != user_id) return res.status(403).json({ status: 'error', message: 'Không có quyền xóa bài viết này' });
+
+    // Kiểm tra quyền: chủ bài hoặc moderator/admin
+    const requestUser = await db.get('SELECT role FROM users WHERE id=?', [user_id]);
+    const isOwner = post.user_id == user_id;
+    const isModerator = requestUser && (requestUser.role === 'moderator' || requestUser.role === 'admin');
+    if (!isOwner && !isModerator) {
+      return res.status(403).json({ status: 'error', message: 'Không có quyền xóa bài viết này' });
+    }
 
     await db.run('DELETE FROM post_likes WHERE post_id=?', [req.params.id]);
     await db.run('DELETE FROM saved_posts WHERE post_id=?', [req.params.id]);
     await db.run('DELETE FROM comments WHERE post_id=?', [req.params.id]);
     await db.run('DELETE FROM posts WHERE id=?', [req.params.id]);
 
-    res.json({ status: 'success', message: 'Đã xóa bài viết' });
+    res.json({ status: 'success', message: isModerator && !isOwner ? 'Moderator đã xóa bài viết' : 'Đã xóa bài viết' });
   } catch (err) { res.status(500).json({ status: 'error', message: err.message }); }
 });
 
-// Update post
-app.put('/api/posts/:id', async (req, res) => {
-  const { user_id, content, location, image_url } = req.body;
-  if (!user_id) return res.status(400).json({ status: 'error', message: 'Thiếu user_id' });
-  try {
-    const post = await db.get('SELECT user_id FROM posts WHERE id=?', [req.params.id]);
-    if (!post) return res.status(404).json({ status: 'error', message: 'Không tìm thấy bài viết' });
-    if (post.user_id != user_id) return res.status(403).json({ status: 'error', message: 'Không có quyền chỉnh sửa bài viết này' });
-
-    await db.run('UPDATE posts SET content=?, location=?, image_url=? WHERE id=?', 
-      [content || '', location || null, image_url || null, req.params.id]);
-
-    const updatedPost = await db.get(`SELECT p.*,u.full_name as user_name,u.avatar_url FROM posts p JOIN users u ON p.user_id=u.id WHERE p.id=?`, [req.params.id]);
-    res.json({ status: 'success', data: updatedPost });
-  } catch (err) { res.status(500).json({ status: 'error', message: err.message }); }
-});
-
-
-// Delete post
-app.delete('/api/posts/:id', async (req, res) => {
-  const { user_id } = req.body;
-  if (!user_id) return res.status(400).json({ status: 'error', message: 'Thiếu user_id' });
-  try {
-    const post = await db.get('SELECT user_id FROM posts WHERE id=?', [req.params.id]);
-    if (!post) return res.status(404).json({ status: 'error', message: 'Không tìm thấy bài viết' });
-    if (post.user_id != user_id) return res.status(403).json({ status: 'error', message: 'Không có quyền xóa bài viết này' });
-
-    await db.run('DELETE FROM post_likes WHERE post_id=?', [req.params.id]);
-    await db.run('DELETE FROM saved_posts WHERE post_id=?', [req.params.id]);
-    await db.run('DELETE FROM comments WHERE post_id=?', [req.params.id]);
-    await db.run('DELETE FROM posts WHERE id=?', [req.params.id]);
-
-    res.json({ status: 'success', message: 'Đã xóa bài viết' });
-  } catch (err) { res.status(500).json({ status: 'error', message: err.message }); }
-});
-
-// Update post
+// Update post (chỉ chủ bài mới được sửa)
 app.put('/api/posts/:id', async (req, res) => {
   const { user_id, content, location, image_url } = req.body;
   if (!user_id) return res.status(400).json({ status: 'error', message: 'Thiếu user_id' });
