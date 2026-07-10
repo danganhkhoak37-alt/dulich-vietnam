@@ -197,16 +197,16 @@ function ChatDrawer({ isOpen, onClose, initialFriendId }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9990]"
+            className="fixed inset-0 bg-black/40 z-[9990]"
           />
 
-          {/* Drawer */}
+          {/* Compact Chat Popup */}
           <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 h-full w-full sm:w-[420px] bg-[#0A241A] z-[9991] flex flex-col shadow-2xl shadow-black/50"
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="fixed bottom-6 right-6 w-[370px] h-[520px] bg-[#0A241A] z-[9991] flex flex-col shadow-2xl shadow-black/60 rounded-2xl border border-white/10 overflow-hidden"
           >
             {/* ===== HEADER ===== */}
             <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10 bg-gradient-to-r from-[#0D2D1F] to-[#0A241A]"
