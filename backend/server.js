@@ -740,21 +740,10 @@ app.get('/api/news/vnexpress', async (req, res) => {
   if (category === 'am-thuc') url = 'https://vnexpress.net/du-lich/am-thuc';
   else if (category === 'diem-den') url = 'https://vnexpress.net/du-lich/diem-den/trong-nuoc';
   else if (category === 'tu-van') url = 'https://vnexpress.net/du-lich/tu-van';
+  else if (category === 'giai-tri') url = 'https://vnexpress.net/du-lich/diem-den';
 
   try {
-    // 1. Lấy tin tức từ Database trước (Tin tức trong nước đã seed)
-    let dbNews = [];
-    try {
-      let q = 'SELECT * FROM news WHERE 1=1';
-      const params = [];
-      if (category && category !== 'all') { q += ' AND category=?'; params.push(category); }
-      q += ' ORDER BY published_at DESC LIMIT 10';
-      dbNews = await db.all(q, params);
-    } catch (dbErr) {
-      console.error('DB News Fetch Error:', dbErr);
-    }
-
-    // 2. Scrape từ VnExpress
+    // Scrape tin tức mới nhất từ VnExpress (realtime)
     const response = await axios.get(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
@@ -764,13 +753,13 @@ app.get('/api/news/vnexpress', async (req, res) => {
     const newsItems = [];
     const seenTitles = new Set();
     
-    // Keywords to exclude international news (Very Aggressive)
+    // Keywords to exclude international news
     const internationalKeywords = [
       'nhật bản', 'hàn quốc', 'trung quốc', 'thái lan', 'singapore', 'mỹ', 'châu âu', 'bali', 'tokyo', 'seoul', 'bangkok', 
       'nước ngoài', 'quốc tế', 'visa', 'hộ chiếu', 'pháp', 'đức', 'anh', 'nga', 'úc', 'australia', 'campuchia', 'lào', 
       'malaysia', 'indonesia', 'philippines', 'đài loan', 'hong kong', 'châu á', 'thế giới', 'toàn cầu', 'ngoại quốc', 
       'milan', 'everest', 'nepal', 'world cup', 'côn minh', 'argentina', 'hantavirus', 'ý', 'italia', 'tây ban nha', 
-      'bồ đào nha', 'ấn độ', 'thụy sĩ', 'thụy điển', 'na uy', 'đan mạch', 'phần lan', 'brazil', 'mexico', 'canada', 'peru', 'bolivia', '?n d?', '?n d?', 'india'
+      'bồ đào nha', 'ấn độ', 'thụy sĩ', 'thụy điển', 'na uy', 'đan mạch', 'phần lan', 'brazil', 'mexico', 'canada', 'peru', 'bolivia', 'india'
     ];
 
     $('article.item-news').each((i, el) => {
@@ -789,7 +778,6 @@ app.get('/api/news/vnexpress', async (req, res) => {
         categoryLabel.toLowerCase().includes(kw)
       );
 
-      // If categoryLabel is "Châu Á", "Châu Âu", "Châu Mỹ", etc. it's international
       const isExplicitlyInternational = ['châu á', 'châu âu', 'châu mỹ', 'châu úc', 'nước ngoài', 'quốc tế'].includes(categoryLabel.toLowerCase());
 
       if (title && link && !seenTitles.has(title) && !isInternational && !isExplicitlyInternational) {
@@ -807,19 +795,7 @@ app.get('/api/news/vnexpress', async (req, res) => {
       }
     });
 
-    // 3. Gộp Database News và Scraped News
-    const formattedDbNews = dbNews.map(n => ({
-      id: `db-${n.id}`,
-      title: n.title,
-      link: '#', 
-      excerpt: n.description,
-      image_url: n.image_url,
-      time_ago: n.published_at,
-      category: n.category === 'sukien' ? 'Sự kiện' : (n.category === 'diem-den' ? 'Điểm đến' : 'Tin tức'),
-      read_time: n.read_time
-    }));
-
-    res.json([...formattedDbNews, ...newsItems]);
+    res.json(newsItems);
   } catch (err) {
     console.error('VnExpress Scrape Error:', err);
     res.status(500).json({ status: 'error', message: 'Không thể tải tin tức từ VnExpress' });
