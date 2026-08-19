@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import API_URL from '../config/api';
 import CommunityMap from '../components/CommunityMap';
+import WeeklyChallenge from '../components/WeeklyChallenge';
 
 // No mock posts anymore
 
@@ -502,26 +503,8 @@ function Community() {
             </ul>
           </div>
 
-          {/* Weekly Challenge */}
-          <div
-            className="relative p-6 rounded-[1.5rem] text-white text-center overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #0A4D2E 0%, #1a6b40 50%, #0A3D28 100%)' }}
-          >
-            <div
-              className="absolute inset-0 opacity-20 bg-cover bg-center"
-              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=800')" }}
-            />
-            <div className="relative z-10">
-              <div className="text-3xl mb-2">🌅</div>
-              <h4 className="font-heading text-xl font-bold mb-2">Thử Thách Tuần</h4>
-              <p className="text-white/80 text-xs leading-relaxed mb-4">
-                Chia sẻ 1 bức ảnh hoàng hôn đẹp nhất của bạn để nhận huy hiệu độc quyền!
-              </p>
-              <button className="bg-[#D4AF37] text-black w-full py-2.5 rounded-full font-black text-xs uppercase tracking-widest hover:bg-white transition-all">
-                Tham Gia Ngay
-              </button>
-            </div>
-          </div>
+          {/* Weekly Challenge - Dynamic rotating */}
+          <WeeklyChallenge onPostCreated={fetchPosts} />
         </aside>
 
         {/* ===== CỘT GIỮA: FEED/MAP ===== */}
