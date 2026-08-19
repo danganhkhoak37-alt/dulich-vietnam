@@ -31,7 +31,14 @@ try {
 // CONFIG
 // ============================================================
 const GROQ_API_URL = 'https://api.groq.com/openai/v1';
-const CHAT_MODEL = process.env.CHAT_MODEL || 'llama-3.1-8b-instant';
+const PREFERRED_MODELS = [
+  'groq/compound-mini',
+  'qwen/qwen3.6-27b',
+  'openai/gpt-oss-20b',
+  'openai/gpt-oss-120b',
+  'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant'
+];
 const TOP_K = 5; // Number of relevant chunks to retrieve
 
 const SYSTEM_PROMPT = `Bạn là WanderlyAI - trợ lý AI thông minh và thân thiện của nền tảng du lịch Wanderly VietNam.
@@ -55,6 +62,12 @@ Quy tắc:
 8. Khi đề cập đến địa danh, luôn kèm theo tỉnh/thành phố
 9. Nếu user hỏi chung chung, hãy hỏi lại để tư vấn chính xác hơn`;
 
+// Helper: Strip <think>...</think> tags if model produces reasoning output
+function stripThinkingTags(text) {
+  if (!text) return '';
+  return text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+}
+
 // ============================================================
 // VECTOR STORE (In-Memory)
 // ============================================================
@@ -67,7 +80,6 @@ class VectorStore {
     this.documents.push({ id, text, metadata, embedding });
   }
 
-  // Cosine similarity (not used in keyword mode but kept for compatibility)
   cosineSimilarity(a, b) {
     if (!a || !b || a.length !== b.length) return 0;
     let dotProduct = 0, normA = 0, normB = 0;
@@ -103,9 +115,10 @@ class RAGEngine {
     this.isReady = false;
     this.isBuilding = false;
     this.groqOnline = false;
+    this.activeModel = process.env.CHAT_MODEL || null;
+    this.availableModels = [];
   }
 
-  // Compatibility getter/setter for server.js
   get ollamaOnline() {
     return this.groqOnline;
   }
@@ -131,7 +144,18 @@ class RAGEngine {
       if (res.ok) {
         const data = await res.json();
         this.groqOnline = true;
-        return { online: true, models: data.data || [] };
+        this.availableModels = data.data || [];
+
+        // Auto-select best working model if not explicitly set in process.env
+        const availableIds = new Set(this.availableModels.map(m => m.id));
+        if (process.env.CHAT_MODEL && availableIds.has(process.env.CHAT_MODEL)) {
+          this.activeModel = process.env.CHAT_MODEL;
+        } else {
+          this.activeModel = PREFERRED_MODELS.find(m => availableIds.has(m)) || this.availableModels[0]?.id || 'groq/compound-mini';
+        }
+
+        console.log(`🤖 Groq Model đã chọn: ${this.activeModel}`);
+        return { online: true, models: this.availableModels, activeModel: this.activeModel };
       }
       this.groqOnline = false;
       const errText = await res.text();
@@ -142,20 +166,29 @@ class RAGEngine {
     }
   }
 
-  // Alias for compatibility
   async checkOllama() {
     return this.checkGroq();
   }
 
-  // ----------------------------------------------------------
-  // Embedding stub (disabled in Groq mode)
-  // ----------------------------------------------------------
   async getEmbedding(text) {
     return null;
   }
 
+  // Helper to get candidate models to try
+  getModelCandidates() {
+    const list = [];
+    if (this.activeModel) list.push(this.activeModel);
+    if (process.env.CHAT_MODEL && !list.includes(process.env.CHAT_MODEL)) {
+      list.push(process.env.CHAT_MODEL);
+    }
+    for (const m of PREFERRED_MODELS) {
+      if (!list.includes(m)) list.push(m);
+    }
+    return list;
+  }
+
   // ----------------------------------------------------------
-  // Generate chat response from Groq API
+  // Generate chat response from Groq API (with auto-fallback)
   // ----------------------------------------------------------
   async generate(prompt, history = []) {
     const apiKey = process.env.GROQ_API_KEY;
@@ -169,37 +202,49 @@ class RAGEngine {
       { role: 'user', content: prompt }
     ];
 
-    try {
-      const res = await fetch(`${GROQ_API_URL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: CHAT_MODEL,
-          messages,
-          temperature: 0.7,
-          max_tokens: 1024,
-          top_p: 0.9
-        })
-      });
+    const modelsToTry = this.getModelCandidates();
+    let lastError = null;
 
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Groq API error: ${res.status} - ${errText}`);
+    for (const model of modelsToTry) {
+      try {
+        const res = await fetch(`${GROQ_API_URL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model,
+            messages,
+            temperature: 0.7,
+            max_tokens: 1024,
+            top_p: 0.9
+          })
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.warn(`⚠️ Groq model [${model}] failed (${res.status}): ${errText}`);
+          lastError = new Error(`Groq error ${res.status}: ${errText}`);
+          continue; // Try next model
+        }
+
+        const data = await res.json();
+        const rawContent = data.choices?.[0]?.message?.content || '';
+        const cleaned = stripThinkingTags(rawContent);
+        this.activeModel = model; // Remember the successful model
+        return cleaned || 'Xin chào! Mình là WanderlyAI, mình có thể giúp gì cho chuyến du lịch của bạn?';
+      } catch (err) {
+        lastError = err;
+        console.warn(`⚠️ Groq generate error with model [${model}]:`, err.message);
       }
-
-      const data = await res.json();
-      return data.choices?.[0]?.message?.content || 'Xin lỗi, mình không thể trả lời lúc này.';
-    } catch (err) {
-      console.error('Generate error:', err.message);
-      throw err;
     }
+
+    throw lastError || new Error('Không thể kết nối đến bất kỳ mô hình AI nào trên Groq.');
   }
 
   // ----------------------------------------------------------
-  // Stream chat response from Groq API
+  // Stream chat response from Groq API (with auto-fallback)
   // ----------------------------------------------------------
   async *generateStream(prompt, history = []) {
     const apiKey = process.env.GROQ_API_KEY;
@@ -213,54 +258,91 @@ class RAGEngine {
       { role: 'user', content: prompt }
     ];
 
-    const res = await fetch(`${GROQ_API_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: CHAT_MODEL,
-        messages,
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 1024,
-        top_p: 0.9
-      })
-    });
+    const modelsToTry = this.getModelCandidates();
+    let streamSuccess = false;
+    let lastError = null;
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Groq stream error: ${res.status} - ${errText}`);
-    }
+    for (const model of modelsToTry) {
+      try {
+        const res = await fetch(`${GROQ_API_URL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model,
+            messages,
+            stream: true,
+            temperature: 0.7,
+            max_tokens: 1024,
+            top_p: 0.9
+          })
+        });
 
-    const reader = res.body;
-    const decoder = new TextDecoder();
-    let buffer = '';
+        if (!res.ok) {
+          const errText = await res.text();
+          console.warn(`⚠️ Groq stream model [${model}] failed (${res.status}): ${errText}`);
+          lastError = new Error(`Groq stream error: ${res.status} - ${errText}`);
+          continue; // Try next model
+        }
 
-    for await (const chunk of reader) {
-      buffer += decoder.decode(chunk, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
+        const reader = res.body;
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let insideThink = false;
 
-      for (const line of lines) {
-        const cleanLine = line.trim();
-        if (!cleanLine) continue;
-        if (cleanLine === 'data: [DONE]') return;
+        for await (const chunk of reader) {
+          buffer += decoder.decode(chunk, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
 
-        if (cleanLine.startsWith('data: ')) {
-          try {
-            const jsonStr = cleanLine.slice(6);
-            const json = JSON.parse(jsonStr);
-            const content = json.choices?.[0]?.delta?.content;
-            if (content) {
-              yield content;
+          for (const line of lines) {
+            const cleanLine = line.trim();
+            if (!cleanLine) continue;
+            if (cleanLine === 'data: [DONE]') {
+              streamSuccess = true;
+              return;
             }
-          } catch (e) {
-            // Bỏ qua JSON dở dang
+
+            if (cleanLine.startsWith('data: ')) {
+              try {
+                const jsonStr = cleanLine.slice(6);
+                const json = JSON.parse(jsonStr);
+                const content = json.choices?.[0]?.delta?.content;
+                if (content) {
+                  // Filter reasoning/thinking tokens
+                  if (content.includes('<think>')) {
+                    insideThink = true;
+                  }
+                  if (insideThink) {
+                    if (content.includes('</think>')) {
+                      insideThink = false;
+                      const afterThink = content.split('</think>')[1];
+                      if (afterThink) yield afterThink;
+                    }
+                    continue;
+                  }
+                  yield content;
+                }
+              } catch (e) {
+                // Ignore incomplete json chunks
+              }
+            }
           }
         }
+
+        streamSuccess = true;
+        this.activeModel = model;
+        return;
+      } catch (err) {
+        lastError = err;
+        console.warn(`⚠️ Groq generateStream error with model [${model}]:`, err.message);
       }
+    }
+
+    if (!streamSuccess) {
+      throw lastError || new Error('Không thể tạo luồng phản hồi từ Groq API.');
     }
   }
 
@@ -392,7 +474,7 @@ Mô tả: ${loc.description || 'Đang cập nhật'}`,
         console.log('⚠️ Groq API check: Offline. Lý do:', status.error);
         console.log('   Chú ý: RAG vẫn sẽ hoạt động qua Keyword Search, nhưng gọi LLM sinh câu trả lời sẽ cần GROQ_API_KEY hợp lệ.');
       } else {
-        console.log('✅ Groq API hoạt động bình thường!');
+        console.log(`✅ Groq API hoạt động bình thường! Model: ${this.activeModel}`);
       }
 
       // Load data
@@ -507,7 +589,7 @@ Mô tả: ${loc.description || 'Đang cập nhật'}`,
   // ----------------------------------------------------------
   async askAboutLocation(locationName, question) {
     const searchQuery = `${locationName} ${question}`;
-    const results = await this.search(searchQuery, 3);
+    const results = await this.search(searchQuery, 4);
 
     const locationResults = results.filter(r =>
       r.metadata.name.toLowerCase().includes(locationName.toLowerCase()) ||

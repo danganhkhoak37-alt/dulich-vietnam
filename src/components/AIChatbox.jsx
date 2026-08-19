@@ -159,6 +159,13 @@ function AIChatbox() {
                     ? { ...m, content: aiMessage, sources }
                     : m
                 ));
+              } else if (json.type === 'error') {
+                aiMessage = `❌ Lỗi: ${json.data || 'Không thể tạo câu trả lời'}`;
+                setMessages(prev => prev.map(m =>
+                  m.timestamp === aiMsgId
+                    ? { ...m, content: aiMessage, isError: true, isStreaming: false }
+                    : m
+                ));
               } else if (json.type === 'done') {
                 // Mark as complete
                 setMessages(prev => prev.map(m =>
@@ -172,6 +179,9 @@ function AIChatbox() {
         }
 
         // Final update
+        if (!aiMessage.trim()) {
+          aiMessage = 'Xin lỗi, hiện tại mình chưa thể phản hồi. Vui lòng thử lại sau giây lát!';
+        }
         setMessages(prev => prev.map(m =>
           m.timestamp === aiMsgId
             ? { ...m, content: aiMessage, sources, isStreaming: false }
