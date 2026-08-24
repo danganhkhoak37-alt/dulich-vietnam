@@ -509,6 +509,11 @@ function Community() {
 
         {/* ===== CỘT GIỮA: FEED/MAP ===== */}
         <main className="col-span-1 lg:col-span-2 space-y-5">
+          {/* Mobile only Weekly Challenge */}
+          <div className="block lg:hidden">
+            <WeeklyChallenge onPostCreated={fetchPosts} />
+          </div>
+
           {/* Tabs Navigation */}
           <div className="flex gap-2 bg-[#0D2D1F] p-2 rounded-2xl border border-white/5 items-center">
             <button 

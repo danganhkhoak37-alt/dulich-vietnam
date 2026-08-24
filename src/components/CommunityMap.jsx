@@ -64,12 +64,38 @@ const TruongSaIcon = L.divIcon({
 });
 
 const MAP_STYLES = {
-  dark: { name: 'Đêm (Dark Premium)', url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' },
-  street: { name: 'Ngày (Street Green)', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' }
+  voyager: { name: 'Bản Đồ', icon: '🗺️', url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', subdomains: 'abcd' },
+  satellite: { name: 'Vệ Tinh', icon: '🛰️', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', subdomains: '' }
 };
 
-function MapStyleUpdater({ styleUrl }) {
-  return <TileLayer attribution='&copy; <a href="https://carto.com/">CartoDB</a> / OSM' url={styleUrl} />;
+function MapStyleUpdater({ styleKey }) {
+  const currentStyle = MAP_STYLES[styleKey] || MAP_STYLES.voyager;
+  return (
+    <TileLayer
+      key={styleKey}
+      attribution='&copy; <a href="https://carto.com/">CartoDB</a> / <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+      url={currentStyle.url}
+      subdomains={currentStyle.subdomains || 'abcd'}
+      maxZoom={19}
+    />
+  );
+}
+
+// Tự động điều chỉnh kích thước bản đồ khi mount / animation xong
+function AutoInvalidateSize() {
+  const map = useMap();
+  useEffect(() => {
+    map.invalidateSize();
+    const t1 = setTimeout(() => map.invalidateSize(), 150);
+    const t2 = setTimeout(() => map.invalidateSize(), 400);
+    const t3 = setTimeout(() => map.invalidateSize(), 800);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [map]);
+  return null;
 }
 
 function getLoggedInUser() {
@@ -101,7 +127,7 @@ function FlyToLocation({ position }) {
 
 function CommunityMap() {
   const [toast, setToast] = useState('');
-  const [mapStyleKey, setMapStyleKey] = useState('street');
+  const [mapStyleKey, setMapStyleKey] = useState('voyager');
   const [users, setUsers] = useState([]);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatFriendId, setChatFriendId] = useState(null);
@@ -129,7 +155,7 @@ function CommunityMap() {
     try {
       const res = await fetch(`${API_URL}/api/map/users`);
       const data = await res.json();
-      if (data.status === 'success') {
+      if (data.status === 'success' && Array.isArray(data.data)) {
         const activeRealUsers = data.data.filter(u => u.lat && u.lng);
         setUsers(activeRealUsers);
         
@@ -138,8 +164,13 @@ function CommunityMap() {
           const myPin = activeRealUsers.find(u => u.id === loggedInUser.id);
           if (myPin) setMyExistingPin(myPin);
         }
+      } else {
+        setUsers([]);
       }
-    } catch (e) { console.error('Lỗi fetch map users', e); }
+    } catch (e) {
+      console.error('Lỗi fetch map users', e);
+      setUsers([]);
+    }
   };
 
   useEffect(() => {
@@ -360,17 +391,34 @@ function CommunityMap() {
           <span>Click vào bản đồ để chọn vị trí ghim</span>
           <button 
             onClick={() => { setIsPinning(false); setToast(''); }}
-            className="ml-4 bg-black/20 hover:bg-black/40 px-3 py-1 rounded-full text-[10px] font-bold transition-all"
+            className="ml-4 bg-black/20 hover:bg-black/40 px-3 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer"
           >
             ✕ Hủy
           </button>
         </div>
       )}
 
-      {/* Map Header Overlay */}
+      {/* Map Controls: Styles & Pinning */}
       <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2 items-end">
-        
-
+        {/* Style Switcher Pill */}
+        <div className="flex bg-[#0A241A]/90 backdrop-blur-md p-1 rounded-xl border border-white/10 shadow-lg gap-1">
+          {Object.entries(MAP_STYLES).map(([key, item]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setMapStyleKey(key)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                mapStyleKey === key
+                  ? 'bg-[#D4AF37] text-black shadow-md'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+              title={item.name}
+            >
+              <span>{item.icon}</span>
+              <span className="hidden sm:inline">{item.name}</span>
+            </button>
+          ))}
+        </div>
 
         {/* Pin Buttons Group */}
         <div className="flex flex-col gap-1.5">
@@ -378,7 +426,7 @@ function CommunityMap() {
           <button 
             onClick={requestGPS}
             disabled={isLocating || isPinning}
-            className="bg-[#D4AF37] text-black px-4 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-white transition-all uppercase tracking-widest flex items-center gap-2 disabled:opacity-50"
+            className="bg-[#D4AF37] text-black px-4 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-white transition-all uppercase tracking-widest flex items-center gap-2 disabled:opacity-50 cursor-pointer"
           >
             {isLocating ? (
               <>
@@ -393,7 +441,7 @@ function CommunityMap() {
           <button 
             onClick={startPinMode}
             disabled={isLocating || isPinning}
-            className={`px-4 py-2 rounded-xl text-xs font-black shadow-lg transition-all uppercase tracking-widest flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-xl text-xs font-black shadow-lg transition-all uppercase tracking-widest flex items-center gap-2 cursor-pointer ${
               isPinning 
                 ? 'bg-white text-black ring-2 ring-[#D4AF37]' 
                 : 'bg-[#0A241A]/90 backdrop-blur-md text-[#D4AF37] border border-[#D4AF37]/40 hover:bg-[#D4AF37] hover:text-black'
@@ -406,7 +454,7 @@ function CommunityMap() {
           {myExistingPin && (
             <button 
               onClick={handleRemovePin}
-              className="bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-red-500/40 transition-all uppercase tracking-widest flex items-center gap-2"
+              className="bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-red-500/40 transition-all uppercase tracking-widest flex items-center gap-2 cursor-pointer"
             >
               🗑️ Xóa ghim
             </button>
@@ -416,9 +464,9 @@ function CommunityMap() {
       </div>
 
       {/* User count badge */}
-      <div className="absolute top-4 left-4 z-[400] bg-[#0A241A]/90 backdrop-blur-md px-3 py-2 rounded-xl border border-white/10 flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-        <span className="text-xs text-white/70 font-bold">{users.length} phượt thủ trên bản đồ</span>
+      <div className="absolute top-4 left-4 z-[400] bg-[#0A241A]/90 backdrop-blur-md px-3 py-2 rounded-xl border border-white/10 flex items-center gap-2 shadow-lg">
+        <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"></span>
+        <span className="text-xs text-white/80 font-bold">{users.length} phượt thủ trên bản đồ</span>
       </div>
 
       <MapContainer 
@@ -427,7 +475,8 @@ function CommunityMap() {
         scrollWheelZoom={true}
         className={`w-full h-full z-0 ${isPinning ? 'cursor-crosshair' : ''}`}
       >
-        <MapStyleUpdater styleUrl={MAP_STYLES[mapStyleKey].url} />
+        <AutoInvalidateSize />
+        <MapStyleUpdater styleKey={mapStyleKey} />
         <MapClickHandler onMapClick={handleMapClick} isPinning={isPinning} />
         {flyTarget && <FlyToLocation position={flyTarget} />}
 
